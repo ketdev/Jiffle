@@ -1,0 +1,43 @@
+2 + 2 # 4
+
+#primitives		# comment 	(ignored by eval)
+,				# particle	(interpreted by eval)
+0x				# syntax error
+`invalid` 		# user error
+null			# null
+true, false		# boolean
+foo				# symbol
+999999999999 	# number
+0b111 			# 7 binary
+0o111 			# 73 octal
+0x111 			# 273 hexadecimal
+3.14 			# real
+6.02e-23		# real with exponent
+'hello!\n' 		# string
+
+( 1,2,3,'hi' )	# sequence
+( 1 )			# number (single item sequence equals item)
+( 2, )			# forced single item sequence
+()				# nop
+
+# ( 'hi' )
+# 3 * (3 + 3)
+# 
+# 2 + 2 // 4
+# 3 + (1 + 2) // 6; can nest, 
+# // order of operation is always from left to right, 
+# // invoking functions when encountered
+#  
+# // data sequences, can mix types
+# ( 1,2,3,'hi' )
+# 
+# // strings are sequences of characters
+# ( 'h','i' ) // string
+# ( "hello ","world" ) // sequence of strings != string
+# // to get functions as literals, escape their evaluation
+# ( 3,\+,1 ) // 3,+,1 sequence
+#  
+# // functions
+# [a] add [b] = a + b
+# 3 add 8 // 11
+
