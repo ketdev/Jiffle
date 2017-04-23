@@ -5,9 +5,10 @@
 #include <map>
 #include <chrono>
 
-#include "parse.h"
+#include "data.h"
+#include "syntax.h"
+
 #include "eval.h"
-#include "assemble.h"
 
 // helper functions
 
@@ -48,14 +49,16 @@ int main(int argc, char* argv[]) {
 	auto timer = clockTime();
 	std::string sourcecode = loadInput(argv[1]);
 	std::cout << "Loader: " << toMilli(clockMeasure(timer)) << " ms" << std::endl;
+	const char* src = &sourcecode[0];
+	size_t length = sourcecode.length();
 
 	// 2. Parser
 	timer = clockTime();
-	auto code = parse(sourcecode);
+	auto code = syntax::parse(src,length);
 	std::cout << "Parse: " << toMilli(clockMeasure(timer)) << " ms" << std::endl;
 	
 	// 2b. Assemble back to source code
-	std::cout << assemble(code) << std::endl;
+	std::cout << syntax::assemble(code) << std::endl;
 
 	// 3. Evaluate
 	timer = clockTime();
@@ -66,7 +69,7 @@ int main(int argc, char* argv[]) {
 	
 	// 4. Assemble output (to code structure)
 	timer = clockTime();
-	auto assm = assemble(output);
+	auto assm = syntax::assemble(output);
 	std::cout << assm << std::endl;
 	std::cout << "Assemble: " << toMilli(clockMeasure(timer)) << " ms" << std::endl;
 

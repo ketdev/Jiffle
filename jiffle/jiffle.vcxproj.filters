@@ -3,13 +3,11 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="eval.cpp" />
-    <ClCompile Include="parse.cpp" />
-    <ClCompile Include="assemble.cpp" />
+    <ClCompile Include="syntax.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="eval.h" />
-    <ClInclude Include="parse.h" />
     <ClInclude Include="data.h" />
-    <ClInclude Include="assemble.h" />
+    <ClInclude Include="syntax.h" />
   </ItemGroup>
 </Project>

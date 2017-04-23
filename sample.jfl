@@ -1,6 +1,6 @@
 2 + 2 # 4
 
-#primitives		# comment 	(ignored by eval)
+# primitives	# comment 	(ignored by eval)
 ,				# particle	(interpreted by eval)
 0x				# syntax error
 `invalid` 		# user error
@@ -18,7 +18,7 @@ foo				# symbol
 ( 1,2,3,'hi' )	# sequence
 ( 1 )			# number (single item sequence equals item)
 ( 2, )			# forced single item sequence
-()				# nop
+()				# null
 
 # ( 'hi' )
 # 3 * (3 + 3)
