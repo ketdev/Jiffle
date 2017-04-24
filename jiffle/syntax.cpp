@@ -40,7 +40,7 @@ namespace syntax {
 
 	value parseComment(const char *& src, size_t & length) {
 		value v;
-		v.type = value::type::TError;
+		v.type = value::TError;
 		v.data.error.user = false;
 		v.data.error.text = src;
 		v.data.error.length = 0;
@@ -50,7 +50,7 @@ namespace syntax {
 			while (length && *src != syntax::Newline) {
 				shift(src, length);
 			}
-			v.type = value::type::TComment;
+			v.type = value::TComment;
 			v.data.comment.afterCode = false;
 			v.data.comment.text = start;
 			v.data.comment.length = src - start;
@@ -60,7 +60,7 @@ namespace syntax {
 
 	value parseError(const char *& src, size_t & length) {
 		value v;
-		v.type = value::type::TError;
+		v.type = value::TError;
 		v.data.error.user = false;
 		v.data.error.text = src;
 		v.data.error.length = 0;
@@ -82,10 +82,17 @@ namespace syntax {
 
 	value parseWord(const char*& src, size_t& length) {
 		value v;
-		v.type = value::type::TError;
+		v.type = value::TError;
 		v.data.error.user = false;
 		v.data.error.text = src;
 		v.data.error.length = 0;
+
+		// reference
+		bool reference = false;
+		if (length && *src == syntax::PReference) {
+			reference = true;
+			shift(src, length);
+		}
 
 		auto start = src;
 		size_t len = 0;
@@ -98,30 +105,46 @@ namespace syntax {
 
 		// null
 		if (len == 4 && !std::memcmp("null", start, len)) {
-			v.type = value::type::TNull;
+			v.type = value::TNull;
 		}
 		// bool: true
 		else if (len == 4 && !std::memcmp("true", start, len)) {
-			v.type = value::type::TBoolean;
+			v.type = value::TBoolean;
 			v.data.boolean.value = true;
 		}
 		// bool: false
 		else if (len == 5 && !std::memcmp("false", start, len)) {
-			v.type = value::type::TBoolean;
+			v.type = value::TBoolean;
 			v.data.boolean.value = false;
 		}
+
+		// cannot reference non-symbols
+		if (reference && v.type != value::TError) {
+			v.type = value::TError;
+			v.data.error.user = false;
+			v.data.error.text = start - 1;
+			v.data.error.length = len + 1;
+		}
+
+		// reference
+		if (len && reference){
+			v.type = value::TReference;
+			v.data.reference.name = start;
+			v.data.reference.length = len;
+		}
 		// symbol
-		else if (len){
-			v.type = value::type::TSymbol;
+		else if (len) {
+			v.type = value::TSymbol;
 			v.data.symbol.name = start;
 			v.data.symbol.length = len;
 		}
+
 		return v;
 	}
 
 	value parseNumber(const char*& src, size_t& length) {
 		value v;
-		v.type = value::type::TError;
+		v.type = value::TError;
 		v.data.error.user = false;
 		v.data.error.text = src;
 		v.data.error.length = 0;
@@ -182,15 +205,15 @@ namespace syntax {
 				v.data.error.length = src - nstart;
 			}
 
-			// number
+			// integer
 			else if (!real) {
-				v.type = value::type::TInteger;
-				v.data.number.value = std::stoll(rep, NULL, base);
+				v.type = value::TInteger;
+				v.data.integer.value = std::stoll(rep, NULL, base);
 			}
 
 			// real
 			else {
-				v.type = value::type::TReal;
+				v.type = value::TReal;
 				v.data.real.value = std::stold(rep, NULL);
 			}
 		}
@@ -199,7 +222,7 @@ namespace syntax {
 
 	value parseString(const char*& src, size_t& length) {
 		value v;
-		v.type = value::type::TError;
+		v.type = value::TError;
 		v.data.error.user = false;
 		v.data.error.text = src;
 		v.data.error.length = 0;
@@ -213,7 +236,7 @@ namespace syntax {
 				shift(src, length);
 			}
 			if (length && *src == syntax::PString) {
-				v.type = value::type::TString;
+				v.type = value::TString;
 				v.data.string.text = start;
 				v.data.string.length = src - start;
 				shift(src, length);
@@ -233,7 +256,6 @@ namespace syntax {
 		seqInfo.count = 0;
 
 		bool explicitSequence = false;
-		bool needsEvaluation = false;
 
 		// parse loop
 		while (true) {
@@ -247,22 +269,30 @@ namespace syntax {
 			if ((val = syntax::parseComment(src, length)).type != value::TError) {
 				if (evalInfo.count)
 					val.data.comment.afterCode = true;
+				/*
 				*eval.alloc() = val;
 				// not counted in evaluation
+				*/
 				continue;
 			}
-
-			// words: symbol, null, true, false
+			
+			// words: reference, symbol, null, true, false
 			if ((val = syntax::parseWord(src, length)).type != value::TError) {
 				*eval.alloc() = val;
 				evalInfo.count++;
-				if (val.type == value::TSymbol)
-					needsEvaluation = true;
+				continue;
+			} else if (val.data.error.length) { // words syntax error
+				*eval.alloc() = val;
+				evalInfo.count++;
 				continue;
 			}
 
 			// numbers
 			if ((val = syntax::parseNumber(src, length)).type != value::TError) {
+				*eval.alloc() = val;
+				evalInfo.count++;
+				continue;
+			} else if (val.data.error.length){ // number syntax error
 				*eval.alloc() = val;
 				evalInfo.count++;
 				continue;
@@ -305,7 +335,7 @@ namespace syntax {
 					shift(src, length);
 				
 				// copy eval to seq with added prefix if needed
-				if (needsEvaluation || evalInfo.count > 1) {
+				if (evalInfo.count > 1) {
 					val.type = value::TEvaluation;
 					val.data.evaluation = evalInfo;
 					*seq.alloc() = val;
@@ -317,12 +347,40 @@ namespace syntax {
 					seqInfo.count++;
 
 				// reset eval
-				needsEvaluation = false;
 				eval.values.clear();
 				evalInfo.count = 0;
 
 				if (finished) break;
 				continue;
+			}
+
+			// abstraction
+			if (length && *src == syntax::PAbstraction) {
+				// lhs is evaluation sequence of symbols only (including input symbols)
+				bool validLHS = evalInfo.count;
+				for each (auto s in eval.values) {
+					if (s.type != value::TSymbol && s.type != value::TComment) {
+						validLHS = false;
+					}
+				}
+
+				if (validLHS) {
+					shift(src, length);
+
+					// copy abstraction to seq with added prefix
+					val.type = value::TAbstraction;
+					val.data.abstraction.count = evalInfo.count;
+					*seq.alloc() = val;
+					for each (auto v in eval.values) {
+						*seq.alloc() = v;
+					}
+					// takes next value as declaration, so no seq count increase
+
+					// reset eval
+					eval.values.clear();
+					evalInfo.count = 0;
+					continue;
+				}
 			}
 
 			// errors
@@ -354,7 +412,7 @@ namespace syntax {
 		std::stack<int> seqCount;
 
 		for each (auto &val in code.values) {
-			if (val.type != value::type::TComment) {
+			if (val.type != value::TComment) {
 				if (!evalCount.size() || !evalCount.top()) output << std::endl;
 				if (evalCount.size()) {
 					evalCount.top()--;
@@ -365,44 +423,47 @@ namespace syntax {
 			}
 
 			switch (val.type) {
-			case value::type::TComment:
+			case value::TComment:
 				if (!val.data.comment.afterCode)
 					output << std::endl;
 				output << '#' << std::string(val.data.comment.text, val.data.comment.length);
 				break;
-			case value::type::TSymbol:
+			case value::TSymbol:
 				output << std::string(val.data.symbol.name, val.data.symbol.length) << ' ';
 				break;
-			case value::type::TNull:
+			case value::TReference:
+				output << "&" << std::string(val.data.reference.name, val.data.reference.length) << ' ';
+				break;
+			case value::TNull:
 				output << "null ";
 				break;
-			case value::type::TBoolean:
+			case value::TBoolean:
 				output << (val.data.boolean.value ? "true " : "false ");
 				break;
-			case value::type::TInteger:
-				output << val.data.number.value << ' ';
+			case value::TInteger:
+				output << val.data.integer.value << ' ';
 				break;
-			case value::type::TReal:
+			case value::TReal:
 				output << val.data.real.value << ' ';
 				break;
-			case value::type::TString:
+			case value::TString:
 				output << '"' << std::string(val.data.string.text, val.data.string.length) << '"' << ' ';
 				break;
-			case value::type::TEvaluation:
+			case value::TEvaluation:
 				evalCount.push(val.data.evaluation.count);
 				break;
-			case value::type::TSequence:
+			case value::TSequence:
 				output << "(";
 				seqCount.push(val.data.sequence.count);
 				break;
-			case value::type::TError:
+			case value::TError:
 				output << '`' << std::string(val.data.error.text, val.data.error.length) << '`' << ' ';
 				break;
 			default:
 				break;
 			}
 
-			if (val.type != value::type::TComment) {
+			if (val.type != value::TComment) {
 				if (seqCount.size()) {
 					seqCount.top()--;
 					if (!seqCount.top()) {

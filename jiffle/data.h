@@ -6,20 +6,25 @@
 // memory item meaning
 struct value {
 	enum type {
+		// Ignored types
 		TComment,		// '#' until newline, user comments and documentations (ignored by eval) 
-		TSymbol,		// symbol: [a-zA-Z_] [a-zA-Z0-9_]* except: null,true,false
+
+		// Primitive types
 		TNull,			// 'null'
 		TBoolean,		// 'true', 'false'
 		TInteger,		// integer: [0-9]+ | 0[xX][0-9A-F]+ | 0[oO][0-7]+ | 0[bB][0-1]+
 		TReal,			// real: [0-9]+'.'[0-9]+ | [0-9]+('.'[0-9]+])?e['-''+']?[0-9]+
 		TString,		// '...' (escaped and formated)
+		TReference,		// '&symbol', refers to another symbol without evaluating
+		TError,			// `...` (verbatim) errors are part of code, can also be produced from bad syntax
+
+		// Abstraction types
+		TSymbol,		// symbol: [a-zA-Z_] [a-zA-Z0-9_]* except: null,true,false
+		
+		// Compound types
 		TEvaluation,	// (1 + 2) prefix for terms without separator, to be evaluated (does not count comments)
 		TSequence,		// (1,2,3) prefix for multiple terms with separator between them (does not count comments)
-
-		TError,			// `...` (verbatim) errors are part of code, can also be produced from bad syntax
-		
-		//TObject,		// symbol to value mapping
-		//TFunction,		// symbol to value mapping with input dependencies
+		TAbstraction,	// 'symbols =' value mapping, only valid after abstraction symbols
 	};
 
 	struct comment {
@@ -35,10 +40,14 @@ struct value {
 		const char* name;
 		unsigned int length;
 	};
+	struct reference {
+		const char* name;
+		unsigned int length;
+	};
 	struct boolean {
 		bool value;
 	};
-	struct number {
+	struct integer {
 		long long value;
 	};
 	struct real {
@@ -50,6 +59,9 @@ struct value {
 	struct sequence {
 		unsigned int count;
 	};
+	struct abstraction {
+		unsigned int count; // number of symbols
+	};
 	struct error {
 		bool user; // if explicitly generated
 		const char* text;
@@ -59,11 +71,13 @@ struct value {
 		value::comment comment;
 		value::string string;
 		value::symbol symbol;
+		value::reference reference;
 		value::boolean boolean;
-		value::number number;
+		value::integer integer;
 		value::real real;
 		value::evaluation evaluation;
 		value::sequence sequence;
+		value::abstraction abstraction;
 		// ...
 		value::error error;
 	};

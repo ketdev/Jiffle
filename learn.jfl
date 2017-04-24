@@ -1,0 +1,203 @@
+
+2 + 2 # 4
+3 + (1 + 2) # 6; can nest, 
+# order of operation is always from left to right, 
+# invoking functions when encountered
+
+999999999999 # integer
+0b111 # 7 binary
+0o111 # 73 octal
+0x111 # 273 hexadecimal
+3.14 # real
+6.02e+23
+'hello!\n' # string
+"C:\hello.txt" # verbatim string
+true # bool
+false # bool
+'a' # character (utf8)
+"b"
+
+# data sequences, can mix types
+( 1,2,3,'hi' )
+# number/character ranges
+( 0..9,'a'..'f' )
+
+# strings are sequences of characters
+( 'h','i' ) # string
+( "hello ","world" ) # sequence of strings != string
+# to get functions as literals, escape their evaluation
+( 3,\+,1 ) # 3,+,1 sequence
+
+# single item sequence equals item
+(1) == 1 # true
+(1,) == 1 # true
+
+# list comprehensions
+( x*2, x <- 1..5 ) # 2,4,6,8,10
+
+# functions
+[a] add [b] = a + b
+3 add 8 # 11
+
+# can also skip lhs 
+add2 [a,b] = a + b
+add2 5,5 # 10
+# and rhs
+[msg] echo = (sys.console.println msg)
+'hi' echo # 'hi'
+
+# function builder
+makeAdder [value] { value \+ } # escape to delay evaluation to next space
+add3to = makeAdder 3 # <- evaluated here
+add3to 6 # 9
+
+# type system, using specification
+square [x:Integer] = x*x
+
+# can specify custom types
+oneOrA [x:1|'A'] = true
+
+# when not specified, all values are valid
+# specification within the function molds the function flow 
+# inputs without any flow whatsoever are considered invalid inputs
+say [msg] {
+	# invoked only when msg is a string
+	str = msg:string 
+	sys.console.println str
+	
+	# invoked only when msg is an integer
+	int = msg:integer
+	sys.console.println (int toString)
+}
+say 1.0 # error: invalid input, string|integer expected
+
+# control flow and conditionals
+
+# use specification for conditionals
+lucky [n:integer] {
+	n:7 -> "Lucky Seven!"
+	n:~ -> "Try again.." # capture all empty flows
+}
+
+# specification can also validate input
+doCmd [args] {
+	args:"help" -> showHelp
+	args:"run" -> runApp
+}
+doCmd "test" # error: invalid input, "help"|"run" expected
+
+# flow forking (same as list comprehension)
+duplicate [list] {
+	item <- list # will be invoked for each item in list, maintaining same order
+	item, item
+}
+duplicate (1,2,3,4,5) # 1,1,2,2,3,3,4,4,5,5
+
+# specification, variation, flow mapping and recursion
+fib [n] {
+	n:0|1 -> 1
+	n:2.. -> fib (n-1) + fib (n-2)
+}
+
+# recursion, indexing and evaluation
+map [func,list] {
+	func list@0
+	map func,list@1..
+}
+
+# anonymous functions
+map ([x] = x+2),(1..5) # 3,4,5,6,7
+map ([x]{ x%2:0 -> x }),(1..5) # 2,4
+
+# data types: with variation
+color = red|green|blue
+red = 0xff000
+green = 0x00ff00
+blue = 0x0000ff
+[c:color] spell:string {
+	c:red -> "red"
+	c:green -> "green"
+	c:blue -> "blue"
+}
+
+# can have dependencies too
+maybe [a] = nothing | just a
+nothing = ()
+just [a] = (a) 
+
+# quicksort example
+qsort [list] {
+	# empty flow
+	list:() 
+		
+	# non empty flow
+	pivot = list@0
+	qsort ( (x < pivot):true -> x, x <- list@1.. )
+	pivot 
+	qsort ( (x >= pivot):true -> x, x <- list@1.. )
+}
+
+#####################################/
+
+/*
+[1] Give me a function that takes a list of numbers and returns only the
+even ones, divided by two.
+*/
+[list] evensHalved {
+	item <- list 			# void expression, forked abstraction
+	item%2:0 -> item/2		# (1) flow specification (only even items)
+							# (2) flow mapping (divide by 2)
+}
+
+/*
+[2] Write a function that returns another functions.
+*/	
+makeAdder [lhs] [rhs] {
+	lhs + rhs
+}
+
+add3 = makeAdder 3
+add3 7 # 10
+add3 12 # 15
+
+#####################################/
+
+# (1) Display series of numbers (1,2,3,4, 5....etc) in an infinite loop. The program should quit if someone hits a specific key (Say ESCAPE key).
+
+runEx1 [key] {
+	system.console.println infinite # returns nothing, has side effect
+	key:~system.input.EscapeKey -> runEx1 key	
+	$infinite = infinite + 1 
+}
+runEx1 system.console.keyhit
+
+# (2) Fibonacci series, swapping two variables, finding maximum/minimum among a list of numbers.
+
+fib [n] {
+	n:0|1 -> 1
+	n:2.. -> n + fib (n-1)
+}
+fib -1 # type error! no flow for value -1
+
+swap [a,b] { b,a } # cannot single line if more than one internal expression
+
+[list] reduce [op] {
+	len = list length
+	i <- 0..len
+	j <- i+1..len
+	a = list @i
+	b = list @j	
+	cond = a op b
+	
+	cond:true -> a
+	cond:false -> b
+}
+[list] max = list reduce \>=
+[list] min = list reduce \<=
+
+list = 3,1,6,8,9,7,5,2,4
+list2 { 3,1,6,8,9,7,5,2,4 }
+list max # 9
+list min # 1
+
+3 max # error, invalid number of arguments, 2 expected

@@ -56,9 +56,15 @@ int main(int argc, char* argv[]) {
 	timer = clockTime();
 	auto code = syntax::parse(src,length);
 	std::cout << "Parse: " << toMilli(clockMeasure(timer)) << " ms" << std::endl;
-	
+	if (length) {
+		std::cerr << "Error parsing source code" << std::endl;
+	}
+
 	// 2b. Assemble back to source code
-	std::cout << syntax::assemble(code) << std::endl;
+	//std::cout << syntax::assemble(code) << std::endl;
+
+	// Built-in environment
+
 
 	// 3. Evaluate
 	timer = clockTime();
