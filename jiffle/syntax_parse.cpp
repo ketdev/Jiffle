@@ -1,6 +1,4 @@
-#include "token.h"
-#include "expr.h"
-#include <vector>
+#include "syntax.h"
 #include <stack>
 #include <iostream>
 

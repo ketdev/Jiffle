@@ -3,14 +3,12 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="eval.cpp" />
-    <ClCompile Include="syntax.cpp" />
     <ClCompile Include="tokenize.cpp" />
     <ClCompile Include="parse.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="eval.h" />
     <ClInclude Include="data.h" />
-    <ClInclude Include="syntax.h" />
     <ClInclude Include="token.h" />
     <ClInclude Include="expr.h" />
   </ItemGroup>

@@ -1,7 +1,34 @@
-#include "token.h"
-#include <string>
+#include "syntax.h"
 
 namespace syntax {
+	
+	bool isWhitespace(char token) {
+		return (token == ' '
+			|| token == 0xB
+			|| token == 0xC
+			|| token == 0xD // CR
+			|| token == 0x9 // TAB
+			);
+	}
+	bool isLetter(char token) {
+		return (token >= 'A' && token <= 'Z')
+			|| (token >= 'a' && token <= 'z')
+			|| (token == '_');
+	}
+	bool isDigit(char token, int base) {
+		switch (base) {
+		case 2:
+			return token >= '0' && token <= '1';
+		case 8:
+			return token >= '0' && token <= '7';
+		case 16:
+			return (token >= '0' && token <= '9')
+				|| (token >= 'A' && token <= 'F')
+				|| (token >= 'a' && token <= 'f');
+		default:
+			return token >= '0' && token <= '9';
+		}
+	}
 
 	template<typename T>
 	static token makeToken(enum token::type type, T data) {

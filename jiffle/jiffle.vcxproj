@@ -142,14 +142,12 @@
     <ClCompile Include="eval.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="parse.cpp" />
-    <ClCompile Include="syntax.cpp" />
     <ClCompile Include="tokenize.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="expr.h" />
     <ClInclude Include="data.h" />
     <ClInclude Include="eval.h" />
-    <ClInclude Include="syntax.h" />
     <ClInclude Include="token.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

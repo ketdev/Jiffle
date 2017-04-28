@@ -1,27 +1,36 @@
 #pragma once
 
-#include "data.h"
+#include <string>
+#include <vector>
+#include <memory>
 
 namespace syntax {
 
+	// tokenize ---------------------------------------------------------------
+
 	static const char Newline = '\n';
-
-	// builtin tokens (interpreted by parse)
+	bool isWhitespace(char token); // ' ' evaluation structure
+	bool isLetter(char token); // [a-zA-Z_]
+	bool isDigit(char token, int base = 10); // 2:(0-1), 8:(0-7), 10:(0-9), 16:(0-F) 
+	
+	// builtin syntax tokens
 	enum particle : char {
-		PComment				= '#',	// declares a comment from this token until newline
-		PString					= '\'',	// '...' (escaped and formated)
-		PParamBegin				= '[',	// start of abstraction parameter
-		PParamEnd				= ']',	// end of abstraction parameter
-		PReference				= '&',  // reference a symbol without evaluating
-		PSequenceBegin			= '(',	// value sequence starting token (each scope is an implicit sequence)
-		PSequenceEnd			= ')',	// value sequence ending token
-		PSequenceDivSL			= ',',	// value sequence divider within same line
-		PSequenceDivML			= '\n',	// value sequence divider on multiple lines
-		
-		PAbstraction			= '=',	// (value) transforms evaluation sequence to abstraction declaration
+		// Sequence
+		SequenceDivHard = ',',	// value sequence divider within same line
+		SequenceDivSoft = '\n',	// value sequence divider on multiple lines
 
-		PError					= '`',	// `...` (verbatim) declares an error, can also be produced from bad syntax
-		
+		// Sub Sequence
+		SequenceBegin = '(',	// value sequence starting token (each scope is an implicit sequence)
+		SequenceEnd = ')',	// value sequence ending token
+
+		// Abstraction
+		Abstraction = '=',		// defines an abstraction declaration
+		ParamBegin = '[',		// start of abstraction parameter
+		ParamEnd = ']',			// end of abstraction parameter
+
+		//Reference = '&',		// reference a symbol without evaluating
+
+
 		// '\' escape newline separator
 		// '{}' abstraction (sequence) (equivalent to '=()')
 		// '<-' forked abstraction (for each in sequence, original order is maintained)
@@ -29,25 +38,116 @@ namespace syntax {
 		// '..' range (variance for numbers and characters) (sequence for list indices)
 		// ':' specification
 		// '.' composition
-		// '[]' dependency (input)
 		// '->' flow mapping (if lhs is evaluated, then compute rhs)
 		// '@' get index in sequence
-		// '()' explicitly ordered evaluation
 		// '~' negation (variation inversion)
 		// '$' reflexive (updateable state)
-		// '_'  non-stored abstraction target, for sinking tupled abstraction assignments
+		// '%' abstract (extern)
 	};
 
-	bool isWhitespace(char token); // ' ' evaluation structure
-	bool isLetter(char token); // [a-zA-Z_]
-	bool isDigit(char token, int base=10); // 2:(0-1), 8:(0-7), 10:(0-9), 16:(0-F) 
+	// tokens are as equivalent to the source code, giving meaning
+	// to different syntax constructs, for syntax highlighting and easier parsing
+	struct token {
+		enum type {
+			Particle,	// builtin syntax characters, see above
+			Comment,	// user comments and documentations
+			Symbol,		// abstraction terms
+			Constant,	// null, true, false, integers, reals, strings
+			Error,		// user error type, or invalid tokens
+		};
+		struct comment {
+			bool afterCode;
+			const char* text;
+			int length;
+		};
+		struct constant {
+			enum type {
+				Null,		// 'null'
+				Boolean,	// 'true', 'false'
+				Integer,	// integer: [0-9]+ | 0[xX][0-9A-F]+ | 0[oO][0-7]+ | 0[bB][0-1]+
+				Real,		// real: [0-9]+'.'[0-9]+ | [0-9]+('.'[0-9]+])?e['-''+']?[0-9]+
+				String,		// '...' (escaped and formated)
+			};
+			struct string {
+				const char* text;
+				int length;
+			};
+			union data {
+				bool boolean;
+				long long integer;
+				long double real;
+				constant::string string;
+			};
 
-	value parseError(const char*& src, size_t& length);
-	value parseWord(const char*& src, size_t& length); // symbol, null or boolean
-	value parseNumber(const char*& src, size_t& length); // integer, real
-	value parseString(const char*& src, size_t& length);
+			constant::type type;
+			constant::data data;
+		};
+		struct symbol {
+			const char* name;
+			int length;
+		};
+		struct error {
+			bool user; // if explicitly generated
+			const char* text;
+			int length;
+		};
+		union data {
+			syntax::particle particle;
+			token::comment comment;
+			token::constant constant;
+			token::symbol symbol;
+			token::error error;
+		};
 
-	memory parse(const char*& src, size_t& length);
+		token::type type;
+		token::data data;
+	};
 
-	std::string assemble(const memory& code);
+	typedef std::vector<token> tokens;
+	tokens tokenize(const std::string& input);
+	
+	// expressions ------------------------------------------------------------
+
+	struct expr {
+		typedef std::shared_ptr<expr> ptr;
+
+		template<typename T>
+		static ptr make() {
+			return ptr(new T());
+		}
+		template<typename T>
+		static T* as(ptr p) {
+			return dynamic_cast<T*>(p.get());
+		}
+		template<typename T>
+		static bool is(ptr p) {
+			return dynamic_cast<T*>(p.get()) != nullptr;
+		}
+
+	protected:
+		expr() {}
+		virtual ~expr() {};
+	};
+
+	struct value : public expr {
+		const syntax::token *token;
+	};
+	struct abstraction : public expr {
+		syntax::token::symbol name;
+		std::vector<syntax::token::symbol> params;
+		expr::ptr content;
+	};
+	struct evaluation : public expr {
+		std::vector<expr::ptr> terms;
+	};
+	struct sequence : public expr {
+		bool isExplicit;
+		std::vector<expr::ptr> items;
+
+		sequence() : isExplicit(false) {}
+	};
+	
+	// parse ------------------------------------------------------------------
+
+	expr::ptr parse(const tokens& sourcecode);
 }
