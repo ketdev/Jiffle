@@ -2,14 +2,12 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="eval.cpp" />
-    <ClCompile Include="tokenize.cpp" />
-    <ClCompile Include="parse.cpp" />
+    <ClCompile Include="syntax_tokenize.cpp" />
+    <ClCompile Include="syntax_parse.cpp" />
+    <ClCompile Include="syntax_dump.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="eval.h" />
-    <ClInclude Include="data.h" />
-    <ClInclude Include="token.h" />
-    <ClInclude Include="expr.h" />
+    <ClInclude Include="syntax.h" />
+    <ClInclude Include="ansicolor.h" />
   </ItemGroup>
 </Project>

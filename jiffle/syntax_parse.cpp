@@ -16,14 +16,23 @@ namespace syntax {
 		S.push(expr::as<sequence>(entry));
 		E.push(nullptr);
 		expr::ptr tmp;
-
-		auto evalpush = [&](expr::ptr& val) {
+		
+		auto push2eval = [&](expr::ptr& val) {
 			if (!E.top()) {
 				auto e = expr::make<evaluation>();
 				E.top() = expr::as<evaluation>(e);
 				S.top()->items.push_back(e);
 			}
 			E.top()->terms.push_back(val);
+			if (val->error)
+				E.top()->error = true;
+		};
+
+		auto pushErr = [&]() {
+			tmp = expr::make<value>();
+			tmp->error = true;
+			expr::as<value>(tmp)->token = code;
+			push2eval(tmp);
 		};
 
 		while (length > 0) {
@@ -34,8 +43,9 @@ namespace syntax {
 			// expression -----------------------------------------------------
 			else if (length && code->type != token::Particle) {
 				tmp = expr::make<value>();
+				tmp->error = code->type == token::Error;
 				expr::as<value>(tmp)->token = code;
-				evalpush(tmp);
+				push2eval(tmp);
 			}
 
 			// particles ------------------------------------------------------
@@ -43,38 +53,74 @@ namespace syntax {
 				switch (code->data.particle) {
 
 				// Abstraction ------------------------------------------------
-				//case syntax::Abstraction:
-				//	break;
-				//case syntax::ParamBegin:
-				//	break;
-				//case syntax::ParamEnd:
-				//	break;
+				case syntax::AbstractionSequenceBegin:
+				case syntax::Abstraction:					
+				{					
+					tmp = expr::make<abstraction>();
+					auto abs = expr::as<abstraction>(tmp);
+					abs->content = expr::make<evaluation>();
 
-				// Sequence ---------------------------------------------------
-				case syntax::SequenceDivHard:
-					S.top()->isExplicit = true;
-				case syntax::SequenceDivSoft:
-					E.top() = nullptr;
+					if (!E.top()) {
+						tmp->error = true;
+					}
+					else {
+						// set name and params
+						for each (auto t in E.top()->terms) {
+							auto val = expr::as<value>(t);
+
+							// validate
+							if (!expr::is<value>(t)
+								|| val->token->type != token::Symbol
+								|| (!val->token->data.symbol.isParam 
+									&& abs->symbol)) {
+								tmp->error = true;
+								continue;
+							}
+
+							if (val->token->data.symbol.isParam)
+								abs->params.push_back(&val->token->data.symbol);
+							else
+								abs->symbol = &expr::as<value>(t)->token->data.symbol;							
+						}
+						E.top()->terms.clear();
+					}
+					push2eval(tmp);
+					E.top() = expr::as<evaluation>(abs->content);
+				}
+				if (code->data.particle == syntax::Abstraction)
 					break;
+				// continue to subsequence
 
 				// Sub Sequence -----------------------------------------------
 				case syntax::SequenceBegin:
 					tmp = expr::make<sequence>();
-					evalpush(tmp);
+					push2eval(tmp);
 					S.push(expr::as<sequence>(tmp));
 					E.push(nullptr);
+					if (code->data.particle == syntax::AbstractionSequenceBegin)
+						S.top()->flags |= sequence::Abstraction;
 					break;
+				case syntax::AbstractionSequenceEnd:
 				case syntax::SequenceEnd:
-					if (S.size() == 1) {
-						std::cerr << "Unexpected end of list" << std::endl;
+					if (S.size() == 1
+						|| ((S.top()->flags & sequence::Abstraction) > 0)
+						!= (code->data.particle == syntax::AbstractionSequenceEnd)) {
+						pushErr();
 						break;
 					}
 					S.pop();
 					E.pop();
 					break;
 
+				// Sequence ---------------------------------------------------
+				case syntax::SequenceDivHard:
+					S.top()->flags |= sequence::Explicit;
+				case syntax::SequenceDivSoft:
+					E.top() = nullptr;
+					break;
+
 				default:
-					std::cerr << "UNHANDLED PARTICLE: " << code->data.particle << std::endl;
+					pushErr();
 					break;
 				}
 			}

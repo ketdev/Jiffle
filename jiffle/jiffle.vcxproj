@@ -139,16 +139,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="eval.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="parse.cpp" />
-    <ClCompile Include="tokenize.cpp" />
+    <ClCompile Include="syntax_dump.cpp" />
+    <ClCompile Include="syntax_parse.cpp" />
+    <ClCompile Include="syntax_tokenize.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="expr.h" />
-    <ClInclude Include="data.h" />
-    <ClInclude Include="eval.h" />
-    <ClInclude Include="token.h" />
+    <ClInclude Include="ansicolor.h" />
+    <ClInclude Include="syntax.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

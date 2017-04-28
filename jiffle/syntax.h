@@ -24,9 +24,9 @@ namespace syntax {
 		SequenceEnd = ')',	// value sequence ending token
 
 		// Abstraction
-		Abstraction = '=',		// defines an abstraction declaration
-		ParamBegin = '[',		// start of abstraction parameter
-		ParamEnd = ']',			// end of abstraction parameter
+		Abstraction = '=',		// defines an abstraction 
+		AbstractionSequenceBegin = '{',	// abstraction + sequence begin '=('
+		AbstractionSequenceEnd = '}',	// abstraction + sequence end ')'
 
 		//Reference = '&',		// reference a symbol without evaluating
 
@@ -56,6 +56,8 @@ namespace syntax {
 			Error,		// user error type, or invalid tokens
 		};
 		struct comment {
+			static const char BeginToken = '#';
+
 			bool afterCode;
 			const char* text;
 			int length;
@@ -83,8 +85,12 @@ namespace syntax {
 			constant::data data;
 		};
 		struct symbol {
+			static const char ParamStartToken = '[';
+			static const char ParamEndToken = ']';
+
 			const char* name;
 			int length;
+			bool isParam;
 		};
 		struct error {
 			bool user; // if explicitly generated
@@ -111,6 +117,8 @@ namespace syntax {
 	struct expr {
 		typedef std::shared_ptr<expr> ptr;
 
+		bool error;
+
 		template<typename T>
 		static ptr make() {
 			return ptr(new T());
@@ -125,29 +133,42 @@ namespace syntax {
 		}
 
 	protected:
-		expr() {}
+		expr():error(false){}
 		virtual ~expr() {};
 	};
 
 	struct value : public expr {
 		const syntax::token *token;
 	};
-	struct abstraction : public expr {
-		syntax::token::symbol name;
-		std::vector<syntax::token::symbol> params;
-		expr::ptr content;
-	};
 	struct evaluation : public expr {
 		std::vector<expr::ptr> terms;
 	};
 	struct sequence : public expr {
-		bool isExplicit;
+		enum flags{
+			None		= 0,
+			Explicit	= 1, // has ','
+			Abstraction = 2, // uses '{}' instead
+		};
+		int flags;
 		std::vector<expr::ptr> items;
 
-		sequence() : isExplicit(false) {}
+		sequence() : flags(None) {}
+	};
+	struct abstraction : public expr {
+		const syntax::token::symbol* symbol;
+		std::vector<const syntax::token::symbol*> params;
+		expr::ptr content;
+
+		abstraction() : symbol(nullptr) {}
 	};
 	
 	// parse ------------------------------------------------------------------
 
 	expr::ptr parse(const tokens& sourcecode);
+
+	// dump -------------------------------------------------------------------
+
+	std::string dump(const token& t);
+	std::string dump(expr::ptr e, int level = 0);
+
 }

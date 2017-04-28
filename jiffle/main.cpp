@@ -5,11 +5,8 @@
 #include <map>
 #include <chrono>
 
-#include "token.h"
-#include "expr.h"
-
-//#include "data.h"
-//#include "syntax.h"
+#include "syntax.h"
+#include "ansicolor.h"
 
 //#include "eval.h"
 
@@ -60,8 +57,12 @@ int main(int argc, char* argv[]) {
 
 	// 3. Parse
 	timer = clockTime();
-	auto exprs = syntax::parse(sourcecode);
+	auto ast = syntax::parse(sourcecode);
 	std::cout << "Parse: " << toMilli(clockMeasure(timer)) << " ms" << std::endl;
+
+
+	// -. Dump
+	ansi_fputs_out(syntax::dump(ast).c_str());
 
 
 	/*

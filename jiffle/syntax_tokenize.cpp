@@ -45,15 +45,17 @@ namespace syntax {
 		size_t length = input.length();
 		tokens tokens;
 		
+		auto ws = [&]() {
+			while (length && syntax::isWhitespace(*src))
+				shift();			
+		};
+
 		while (length > 0) {
 			// skip whitespaces -----------------------------------------------
-			if (syntax::isWhitespace(*src)) {
-				shift();
-				continue;
-			}
+			ws();
 
 			// comment --------------------------------------------------------
-			if (length && *src == '#') {
+			if (length && *src == syntax::token::comment::BeginToken) {
 				shift();
 				auto start = src;
 				while (length && *src != syntax::Newline)
@@ -63,7 +65,12 @@ namespace syntax {
 			}
 
 			// identifier -----------------------------------------------------
-			if (length && isLetter(*src)) {
+			bool isParam = *src == token::symbol::ParamStartToken;
+			if (length && (isLetter(*src) || isParam)) {
+				if (isParam) {
+					shift();
+					ws();
+				}
 				auto start = src;
 				while (length && (isLetter(*src) || isDigit(*src)))
 					shift();				
@@ -85,7 +92,23 @@ namespace syntax {
 				}
 				// symbol
 				else {
-					push(token::Symbol, (token::symbol{ start, src - start }));
+					auto end = src;
+					// params must end with a param token
+					if (isParam) {
+						ws();
+						if (*src != token::symbol::ParamEndToken) {
+							push(token::Error, (token::error{ false, start, src - start }));
+							continue;
+						}
+						shift();
+					}
+					push(token::Symbol, (token::symbol{ start, end - start, isParam }));
+					continue;
+				}
+
+				// params must be symbols
+				if (isParam) {
+					push(token::Error, (token::error{ false, start, src - start }));
 					continue;
 				}
 				push(token::Constant, c);
@@ -194,14 +217,15 @@ namespace syntax {
 			}
 
 			// particle -------------------------------------------------------
+			
 			switch (*src) {
-			case syntax::ParamBegin:
-			case syntax::ParamEnd:
-			case syntax::SequenceBegin:
-			case syntax::SequenceEnd:
 			case syntax::SequenceDivSoft:
 			case syntax::SequenceDivHard:
+			case syntax::SequenceBegin:
+			case syntax::SequenceEnd:
 			case syntax::Abstraction:
+			case syntax::AbstractionSequenceBegin:
+			case syntax::AbstractionSequenceEnd:
 				push(token::Particle, (particle)*src);
 				break;
 			default:
