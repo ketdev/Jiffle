@@ -70,7 +70,10 @@ namespace syntax {
 		else if (expr::is<abstraction>(e)) {
 			auto abs = expr::as<abstraction>(e);
 			ss << "\033[33;01mABSTRACTION ";
-			ss << "\033[22;37m[" << std::string(abs->symbol->name, abs->symbol->length) << "] ";
+			if (abs->symbol)
+				ss << "\033[22;37m[" << std::string(abs->symbol->name, abs->symbol->length) << "] ";
+			else
+				ss << "(ANONYMOUS) ";
 			ss << "\033[22;37m[";
 			for (size_t i = 0; i < abs->params.size(); i++){
 				if (i > 0) ss << ", ";
@@ -82,17 +85,17 @@ namespace syntax {
 		}
 		else if (expr::is<evaluation>(e)) {
 			auto eval = expr::as<evaluation>(e);
-			ss << "\033[34;01mEVALUATION" << std::endl;
+			ss << "\033[34;01mEVALUATION " << std::endl;
 			for each (auto e in eval->terms)
 				ss << dump(e,level+1);
 		}
 		else if (expr::is<sequence>(e)) {
 			auto seq = expr::as<sequence>(e);
-			ss << "\033[32;22mSEQUENCE";
+			ss << "\033[32;22mSEQUENCE ";
 			if (seq->flags & sequence::Explicit)
-				ss << " (EXPLICIT)";
+				ss << "(EXPLICIT) ";
 			if (seq->flags & sequence::Abstraction)
-				ss << " (ABSTRACTION)";
+				ss << "(ABSTRACTION) ";
 			ss << std::endl;
 			for each (auto e in seq->items)
 				ss << dump(e, level + 1);

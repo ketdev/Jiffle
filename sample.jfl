@@ -3,14 +3,25 @@ foo = 3
 
 # evaluation abstractions (functions)
 [a] add [b] {
-	a + b
+	a __plus__ b
 }
+
+math.floor(3.5,3)
+
+swap [a,b] { b,a } # can filter input type as sequence
+
+#head [a,b..] = a
+#tail [a..,b] = b
+
+
+# anonymous
+'A' [a][b]{ a concat b } 'B' # 'AB'
 
 # symbol (invoked)
 foo
 
 # reference (not invoked)
-&foo
+#&foo
 
 2 add 2 # 4
 

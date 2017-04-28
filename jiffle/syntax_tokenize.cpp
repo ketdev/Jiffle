@@ -58,7 +58,7 @@ namespace syntax {
 			if (length && *src == syntax::token::comment::BeginToken) {
 				shift();
 				auto start = src;
-				while (length && *src != syntax::Newline)
+				while (length && *src != syntax::token::comment::EndToken)
 					shift();
 				push(token::Comment, (token::comment{ false, start, src - start }));
 				continue;
@@ -116,13 +116,13 @@ namespace syntax {
 			}
 
 			// string ---------------------------------------------------------
-			if (length && *src == '\'') {
+			if (length && *src == token::constant::string::Token) {
 				shift();
 
 				// TODO: escape sequences
 
 				auto start = src;
-				while (length && *src != '\'')
+				while (length && *src != token::constant::string::Token)
 					shift();
 				
 				if (length) {
@@ -205,10 +205,10 @@ namespace syntax {
 			}
 
 			// error ----------------------------------------------------------
-			if (length && *src == '`') {
+			if (length && *src == syntax::token::error::Token) {
 				shift();
 				auto start = src;
-				while (length && *src != '`')
+				while (length && *src != syntax::token::error::Token)
 					shift();
 				push(token::Error, (token::error{ length > 0, start,src - start }));
 				if (length)

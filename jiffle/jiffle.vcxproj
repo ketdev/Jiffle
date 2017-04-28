@@ -141,6 +141,7 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="syntax_dump.cpp" />
+    <ClCompile Include="syntax_evaluate.cpp" />
     <ClCompile Include="syntax_parse.cpp" />
     <ClCompile Include="syntax_tokenize.cpp" />
   </ItemGroup>

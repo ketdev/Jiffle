@@ -36,6 +36,10 @@ foo				# symbol (invoked)
 [a] add [b] = a + b
 3 add 8 # 11
 
+# alternatives
+[a] add1 [b] =( a + b ) 	# can have multiple evaluations
+[a] add2 [b] { a + b } 		# syntax sugar 
+
 # order of operation is always from left to right, 
 # invoking functions when encountered
 2 + 2 # 4
@@ -59,6 +63,13 @@ square [x:Integer] = x*x
 
 # can specify custom types
 oneOrA [x:1|'A'] = true
+
+# can specify type as sequence
+swap [a,b] { b,a }
+
+# can specify sequence range, and decide where range goes
+head [a,b..] = a
+tail [a..,b] = b
 
 # when not specified, all values are valid
 # specification within the function molds the function flow 

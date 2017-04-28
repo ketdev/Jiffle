@@ -8,7 +8,6 @@ namespace syntax {
 
 	// tokenize ---------------------------------------------------------------
 
-	static const char Newline = '\n';
 	bool isWhitespace(char token); // ' ' evaluation structure
 	bool isLetter(char token); // [a-zA-Z_]
 	bool isDigit(char token, int base = 10); // 2:(0-1), 8:(0-7), 10:(0-9), 16:(0-F) 
@@ -57,6 +56,7 @@ namespace syntax {
 		};
 		struct comment {
 			static const char BeginToken = '#';
+			static const char EndToken = '\n';
 
 			bool afterCode;
 			const char* text;
@@ -71,6 +71,8 @@ namespace syntax {
 				String,		// '...' (escaped and formated)
 			};
 			struct string {
+				static const char Token = '\'';
+
 				const char* text;
 				int length;
 			};
@@ -93,6 +95,8 @@ namespace syntax {
 			bool isParam;
 		};
 		struct error {
+			static const char Token = '`';
+
 			bool user; // if explicitly generated
 			const char* text;
 			int length;
@@ -170,5 +174,9 @@ namespace syntax {
 
 	std::string dump(const token& t);
 	std::string dump(expr::ptr e, int level = 0);
+
+	// evaluate ---------------------------------------------------------------
+
+	expr::ptr eval(const expr::ptr& expr);
 
 }
