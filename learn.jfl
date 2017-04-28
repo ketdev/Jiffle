@@ -1,24 +1,25 @@
 
-2 + 2 # 4
-3 + (1 + 2) # 6; can nest, 
-# order of operation is always from left to right, 
-# invoking functions when encountered
+# primitives	# comment 	(ignored by eval)
+null			# null
+true, false		# boolean
+foo				# symbol (invoked)
+&foo			# reference (not invoked)
+999999999999 	# number
+0b111 			# 7 binary
+0o111 			# 73 octal
+0x111 			# 273 hexadecimal
+3.14 			# real
+6.02e-23		# real with exponent
+'hello!\n' 		# string
+0x				# syntax error
+`invalid` 		# user error
 
-999999999999 # integer
-0b111 # 7 binary
-0o111 # 73 octal
-0x111 # 273 hexadecimal
-3.14 # real
-6.02e+23
-'hello!\n' # string
-"C:\hello.txt" # verbatim string
-true # bool
-false # bool
-'a' # character (utf8)
-"b"
+# sequences
+( 1,2,3,'hi' )	# data sequences, can mix types
+( 1 )			# number (single item sequence equals item)
+( 2, )			# forced single item sequence
+()				# null
 
-# data sequences, can mix types
-( 1,2,3,'hi' )
 # number/character ranges
 ( 0..9,'a'..'f' )
 
@@ -28,10 +29,6 @@ false # bool
 # to get functions as literals, escape their evaluation
 ( 3,\+,1 ) # 3,+,1 sequence
 
-# single item sequence equals item
-(1) == 1 # true
-(1,) == 1 # true
-
 # list comprehensions
 ( x*2, x <- 1..5 ) # 2,4,6,8,10
 
@@ -39,9 +36,15 @@ false # bool
 [a] add [b] = a + b
 3 add 8 # 11
 
+# order of operation is always from left to right, 
+# invoking functions when encountered
+2 + 2 # 4
+3 + 1 * 2 # 8
+3 + (1 * 2) # 5
+
 # can also skip lhs 
-add2 [a,b] = a + b
-add2 5,5 # 10
+add2 [a] [b] = a + b
+add2 5 5 # 10
 # and rhs
 [msg] echo = (sys.console.println msg)
 'hi' echo # 'hi'
@@ -100,9 +103,9 @@ fib [n] {
 }
 
 # recursion, indexing and evaluation
-map [func,list] {
+map [func] [list] {
 	func list@0
-	map func,list@1..
+	map func list@1..
 }
 
 # anonymous functions
@@ -139,19 +142,16 @@ qsort [list] {
 
 #####################################/
 
-/*
-[1] Give me a function that takes a list of numbers and returns only the
-even ones, divided by two.
-*/
+# [1] Give me a function that takes a list of numbers and returns only the
+# even ones, divided by two.
+
 [list] evensHalved {
 	item <- list 			# void expression, forked abstraction
 	item%2:0 -> item/2		# (1) flow specification (only even items)
 							# (2) flow mapping (divide by 2)
 }
 
-/*
-[2] Write a function that returns another functions.
-*/	
+# [2] Write a function that returns another functions.
 makeAdder [lhs] [rhs] {
 	lhs + rhs
 }

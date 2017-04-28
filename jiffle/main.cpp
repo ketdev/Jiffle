@@ -5,10 +5,13 @@
 #include <map>
 #include <chrono>
 
-#include "data.h"
-#include "syntax.h"
+#include "token.h"
+#include "expr.h"
 
-#include "eval.h"
+//#include "data.h"
+//#include "syntax.h"
+
+//#include "eval.h"
 
 // helper functions
 
@@ -47,19 +50,21 @@ int main(int argc, char* argv[]) {
 
 	// 1. Load input(s)
 	auto timer = clockTime();
-	std::string sourcecode = loadInput(argv[1]);
+	std::string input = loadInput(argv[1]);
 	std::cout << "Loader: " << toMilli(clockMeasure(timer)) << " ms" << std::endl;
-	const char* src = &sourcecode[0];
-	size_t length = sourcecode.length();
 
-	// 2. Parser
+	// 2. Tokenize
 	timer = clockTime();
-	auto code = syntax::parse(src,length);
-	std::cout << "Parse: " << toMilli(clockMeasure(timer)) << " ms" << std::endl;
-	if (length) {
-		std::cerr << "Error parsing source code" << std::endl;
-	}
+	auto sourcecode = syntax::tokenize(input);
+	std::cout << "Tokenize: " << toMilli(clockMeasure(timer)) << " ms" << std::endl;
 
+	// 3. Parse
+	timer = clockTime();
+	auto exprs = syntax::parse(sourcecode);
+	std::cout << "Parse: " << toMilli(clockMeasure(timer)) << " ms" << std::endl;
+
+
+	/*
 	// 2b. Assemble back to source code
 	//std::cout << syntax::assemble(code) << std::endl;
 
@@ -78,6 +83,7 @@ int main(int argc, char* argv[]) {
 	auto assm = syntax::assemble(output);
 	std::cout << assm << std::endl;
 	std::cout << "Assemble: " << toMilli(clockMeasure(timer)) << " ms" << std::endl;
+	*/
 
 	getchar();
 	return 0;

@@ -38,26 +38,6 @@ namespace syntax {
 		src++;
 	}
 
-	value parseComment(const char *& src, size_t & length) {
-		value v;
-		v.type = value::TError;
-		v.data.error.user = false;
-		v.data.error.text = src;
-		v.data.error.length = 0;
-		if (length && *src == syntax::PComment) {
-			shift(src, length);
-			auto start = src;
-			while (length && *src != syntax::Newline) {
-				shift(src, length);
-			}
-			v.type = value::TComment;
-			v.data.comment.afterCode = false;
-			v.data.comment.text = start;
-			v.data.comment.length = src - start;
-		}
-		return v;
-	}
-
 	value parseError(const char *& src, size_t & length) {
 		value v;
 		v.type = value::TError;
@@ -256,26 +236,103 @@ namespace syntax {
 		seqInfo.count = 0;
 
 		bool explicitSequence = false;
+		bool needsEvaluation = false;
 
 		// parse loop
 		while (true) {
-			// skip whitespaces
+
+			//-----------------------------------------------------------------
+			// skip whitespaces -----------------------------------------------
 			if (syntax::isWhitespace(*src)) {
 				shift(src, length);
 				continue;
 			}
-
-			// comment
-			if ((val = syntax::parseComment(src, length)).type != value::TError) {
-				if (evalInfo.count)
-					val.data.comment.afterCode = true;
-				/*
+			// comment --------------------------------------------------------
+			if (length && *src == syntax::PComment) {
+				shift(src, length);
+				auto start = src;
+				while (length && *src != syntax::Newline) {
+					shift(src, length);
+				}
+				val.type = value::TComment;
+				val.data.comment.afterCode = false;
+				val.data.comment.text = start;
+				val.data.comment.length = src - start;
 				*eval.alloc() = val;
 				// not counted in evaluation
-				*/
+				continue;
+			}
+
+			//-----------------------------------------------------------------
+			// param
+			bool param = false;
+			if (length && *src == syntax::PParamBegin) {
+				param = true;
+				shift(src, length);
+			}
+			// reference
+			bool reference = false;
+			if (length && *src == syntax::PReference) {
+				reference = true;
+				shift(src, length);
+			}
+			// identifier
+			auto start = src;
+			size_t len = 0;
+			if (length && isLetter(*src)) {
+				while (length && (isLetter(*src) || isDigit(*src))) {
+					shift(src, length);
+				}
+				len = src - start;
+			}
+
+			// null -----------------------------------------------------------
+			if (len == 4 && !std::memcmp("null", start, len)) {
+				val.type = value::TNull;
+			}
+			// bool: true -----------------------------------------------------
+			else if (len == 4 && !std::memcmp("true", start, len)) {
+				val.type = value::TBoolean;
+				val.data.boolean.value = true;
+			}
+			// bool: false ----------------------------------------------------
+			else if (len == 5 && !std::memcmp("false", start, len)) {
+				val.type = value::TBoolean;
+				val.data.boolean.value = false;
+			}
+
+			// non-symbols cannot be references or params
+			if ((param||reference) && val.type != value::TError) {
+				val.type = value::TError;
+				val.data.error.user = false;
+				val.data.error.text = start - 1;
+				val.data.error.length = len + 1;
+				*eval.alloc() = val;
+				evalInfo.count++;
+				continue;
+			}
+
+			// reference ------------------------------------------------------
+			if (len && reference) {
+				val.type = value::TReference;
+				val.data.reference.name = start;
+				val.data.reference.length = len;
+				*eval.alloc() = val;
+				evalInfo.count++;
 				continue;
 			}
 			
+			//-----------------------------------------------------------------
+			// symbol
+			else if (len) {
+				val.type = value::TSymbol;
+				val.data.symbol.name = start;
+				val.data.symbol.length = len;
+			}
+
+
+
+
 			// words: reference, symbol, null, true, false
 			if ((val = syntax::parseWord(src, length)).type != value::TError) {
 				*eval.alloc() = val;
@@ -287,10 +344,20 @@ namespace syntax {
 				continue;
 			}
 
+			// param
+			if (length && *src == syntax::PParamBegin) {
+				shift(src, length);
+				
+				//PParamBegin
+				//PParamEnd
+			}
+
 			// numbers
 			if ((val = syntax::parseNumber(src, length)).type != value::TError) {
 				*eval.alloc() = val;
 				evalInfo.count++;
+				if (val.type == value::TSymbol)
+					needsEvaluation = true;
 				continue;
 			} else if (val.data.error.length){ // number syntax error
 				*eval.alloc() = val;
@@ -335,7 +402,7 @@ namespace syntax {
 					shift(src, length);
 				
 				// copy eval to seq with added prefix if needed
-				if (evalInfo.count > 1) {
+				if (needsEvaluation || evalInfo.count > 1) {
 					val.type = value::TEvaluation;
 					val.data.evaluation = evalInfo;
 					*seq.alloc() = val;
@@ -347,6 +414,7 @@ namespace syntax {
 					seqInfo.count++;
 
 				// reset eval
+				needsEvaluation = false;
 				eval.values.clear();
 				evalInfo.count = 0;
 

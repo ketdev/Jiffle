@@ -1,6 +1,8 @@
-
 # value abstractions
-foo = 3
+#foo = 3
+
+# evaluation abstractions (functions)
+#[a] add [b] = a + b
 
 # symbol (invoked)
 foo
@@ -8,32 +10,12 @@ foo
 # reference (not invoked)
 &foo
 
-# evaluation abstractions (functions)
-#[a] add [b] = a + b
+2 + 2 # 4
 
-
-# 2 + 2 # 4
-# 
-# # primitives	# comment 	(ignored by eval)
-# null			# null
-# true, false		# boolean
-# foo				# symbol (invoked)
-# &foo			# reference (not invoked)
-# 999999999999 	# number
-# 0b111 			# 7 binary
-# 0o111 			# 73 octal
-# 0x111 			# 273 hexadecimal
-# 3.14 			# real
-# 6.02e-23		# real with exponent
-# 'hello!\n' 		# string
-# 0x				# syntax error
-# `invalid` 		# user error
-# 
-# ( 1,2,3,'hi' )	# sequence
-# ( 1 )			# number (single item sequence equals item)
-# ( 2, )			# forced single item sequence
-# ()				# null
-
+( 1,2,3,'hi' )	# sequence
+( 1 )			# number (single item sequence equals item)
+( 2, )			# forced single item sequence
+()				# null
 
 # ( 'hi' )
 # 3 * (3 + 3)

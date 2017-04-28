@@ -10,6 +10,8 @@ namespace syntax {
 	enum particle : char {
 		PComment				= '#',	// declares a comment from this token until newline
 		PString					= '\'',	// '...' (escaped and formated)
+		PParamBegin				= '[',	// start of abstraction parameter
+		PParamEnd				= ']',	// end of abstraction parameter
 		PReference				= '&',  // reference a symbol without evaluating
 		PSequenceBegin			= '(',	// value sequence starting token (each scope is an implicit sequence)
 		PSequenceEnd			= ')',	// value sequence ending token
@@ -40,7 +42,6 @@ namespace syntax {
 	bool isLetter(char token); // [a-zA-Z_]
 	bool isDigit(char token, int base=10); // 2:(0-1), 8:(0-7), 10:(0-9), 16:(0-F) 
 
-	value parseComment(const char*& src, size_t& length);
 	value parseError(const char*& src, size_t& length);
 	value parseWord(const char*& src, size_t& length); // symbol, null or boolean
 	value parseNumber(const char*& src, size_t& length); // integer, real

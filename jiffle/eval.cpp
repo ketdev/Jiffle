@@ -20,10 +20,11 @@ static const inline void shift(const value*& code, size_t & length) {
 }
 
 memory eval(const value*& code, size_t& length) {
+	typedef std::map<value::symbol, value, symbolLess> env_map;
+
 	memory result;
 
 	// abstraction environment
-	typedef std::map<value::symbol, value, symbolLess> env_map;
 	env_map locals;
 	env_map::iterator lookup;
 
@@ -34,12 +35,13 @@ memory eval(const value*& code, size_t& length) {
 	// primitives returned as is
 	if (length) {
 		switch (code->type) {
-		case value::TReference:
 		case value::TNull:
 		case value::TBoolean:
 		case value::TInteger:
 		case value::TReal:
 		case value::TString:
+		case value::TReference:
+		case value::TSymbol:
 		case value::TError:
 			*result.alloc() = *code;
 			shift(code, length);
@@ -49,73 +51,15 @@ memory eval(const value*& code, size_t& length) {
 		}
 	}
 
-	// symbol lookup
-	if(length && code->type == value::TSymbol){
-		lookup = locals.find(code->data.symbol);
-		shift(code, length);
-		if (lookup == locals.end()) {
-			value val;
-			val.type = value::TError;
-			val.data.error.user = false;
-			val.data.error.text = code->data.symbol.name;
-			val.data.error.length = code->data.symbol.length;
-			*result.alloc() = val;			
-		}
-		else {
-			std::cout << "SYMBOL found!" << std::endl;
-		}
-		return result;
-	}
+	// SEQUENCE TODO: iterate full sequence to get abstractions first (since order independent)
+	// ABSTRACTION TODO: store abstractions in symbol table, with different scopes
+	// EVALUATION TODO: lookup symbols in evaluation & call
 
-	// symbol declaration
-	if (length && code->type == value::TAbstraction) {
-		lookup = locals.find(code->data.symbol);
-		auto len = code->data.sequence.count;
-		shift(code, length);
-		if (lookup != locals.end()) {
-			value val;
-			val.type = value::TError;
-			val.data.error.user = false;
-			val.data.error.text = code->data.symbol.name;
-			val.data.error.length = code->data.symbol.length;
-			*result.alloc() = val;
-		}
-		else {
-			// get symbol name
-			value::symbol symb;
-			for (size_t i = 0; i < len; i++) {
-				// skip comments
-				while (length && code->type == value::TComment)
-					shift(code, length);
-
-				// missing symbols
-				if (!length || code->type != value::TSymbol) {
-					value val;
-					val.type = value::TError;
-					val.data.error.user = false;
-					val.data.error.text = code->data.symbol.name;
-					val.data.error.length = code->data.symbol.length;
-					*result.alloc() = val;
-					return result;
-				}
-
-				// read symbol
-				symb = code->data.symbol;
-				// TODO: read symbol input params
-				shift(code, length);
-			}
-			// skip symbol value
-			eval(code, length);
-
-			// return symbol reference
-			value val;
-			val.type = value::TReference;
-			val.data.reference.length = symb.length;
-			val.data.reference.name = symb.name;
-			*result.alloc() = val;
-		}
-		return result;
-	}
+	// first iteration: 
+	//	- register abstraction definitions
+	//	- build evaluation dependencies
+	// second iteration:
+	//  - resolve dependency tree, from leafs to root
 
 	// sequence evaluates each item recursively
 	if (length && code->type == value::TSequence) {
@@ -132,15 +76,7 @@ memory eval(const value*& code, size_t& length) {
 		}
 		return result;
 	}
-
-	// evaluation 
-	switch (code->type) {
-	case value::TEvaluation:
-		shift(code, length);
-		// TODO
-		break;
-	}
-
+	
 	// error value
 	shift(code, length);
 	value val;
