@@ -61,8 +61,20 @@ int main(int argc, char* argv[]) {
 	std::cout << "Parse: " << toMilli(clockMeasure(timer)) << " ms" << std::endl;
 
 
-	// -. Dump
+	// 3b. Dump
 	ansi_fputs_out(syntax::dump(ast).c_str());
+
+	// 4. Evaluate
+	timer = clockTime();
+	auto res = syntax::eval(ast);
+	std::cout << "Evaluate: " << toMilli(clockMeasure(timer)) << " ms" << std::endl;
+
+	// 5. Print
+	timer = clockTime();
+	ansi_fputs_out(syntax::dump(res).c_str());
+	std::cout << "Print: " << toMilli(clockMeasure(timer)) << " ms" << std::endl;
+
+
 
 
 	/*

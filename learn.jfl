@@ -20,6 +20,11 @@ foo				# symbol (invoked)
 ( 2, )			# forced single item sequence
 ()				# null
 
+# builtin operators: +-*/, etc.. with order of operation
+2 + 2 # 4
+3 + 1 * 2 # 6
+(3 + 1) * 2 # 8
+
 # number/character ranges
 ( 0..9,'a'..'f' )
 
@@ -32,31 +37,43 @@ foo				# symbol (invoked)
 # list comprehensions
 ( x*2, x <- 1..5 ) # 2,4,6,8,10
 
-# functions
-[a] add [b] = a + b
-3 add 8 # 11
+# value abstractions
+foo = 3
+
+# function abstractions (dependent values)
+add [a] [b] = a + b
+add 3 8 # 11
 
 # alternatives
-[a] add1 [b] =( a + b ) 	# can have multiple evaluations
-[a] add2 [b] { a + b } 		# syntax sugar 
+add1 [a] [b] = (a + b) # can be multiline
+add2 [a] [b] { a + b } # syntactic sugar (*slight difference)
 
-# order of operation is always from left to right, 
-# invoking functions when encountered
-2 + 2 # 4
-3 + 1 * 2 # 8
-3 + (1 * 2) # 5
+# anonymous functions
+[a][b]{ concat a b } 'A' 'B' # 'AB'
 
-# can also skip lhs 
-add2 [a] [b] = a + b
-add2 5 5 # 10
-# and rhs
-[msg] echo = (sys.console.println msg)
-'hi' echo # 'hi'
+# can specify sequence parameter as input
+swap [a,b] { b,a } 
+swap (1,2) # (2,1)
 
-# function builder
-makeAdder [value] { value \+ } # escape to delay evaluation to next space
-add3to = makeAdder 3 # <- evaluated here
+# can specify variable length sequence
+head [a,b..] = a
+tail [a..,b] = b
+
+# partial function invocations
+add3to = add 3
 add3to 6 # 9
+
+# classes are sequences with only abstractions
+myClass {
+	field = 4
+	# '.' makes it private within class scope
+	.foo [a] {
+		a
+	}
+}
+# everything is extensible
+myClass.bar { 'hello!' }
+
 
 # type system, using specification
 square [x:Integer] = x*x

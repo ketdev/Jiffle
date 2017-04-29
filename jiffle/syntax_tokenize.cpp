@@ -45,14 +45,10 @@ namespace syntax {
 		size_t length = input.length();
 		tokens tokens;
 		
-		auto ws = [&]() {
-			while (length && syntax::isWhitespace(*src))
-				shift();			
-		};
-
 		while (length > 0) {
 			// skip whitespaces -----------------------------------------------
-			ws();
+			while (length && syntax::isWhitespace(*src))
+				shift();
 
 			// comment --------------------------------------------------------
 			if (length && *src == syntax::token::comment::BeginToken) {
@@ -65,12 +61,7 @@ namespace syntax {
 			}
 
 			// identifier -----------------------------------------------------
-			bool isParam = *src == token::symbol::ParamStartToken;
-			if (length && (isLetter(*src) || isParam)) {
-				if (isParam) {
-					shift();
-					ws();
-				}
+			if (length && isLetter(*src)) {
 				auto start = src;
 				while (length && (isLetter(*src) || isDigit(*src)))
 					shift();				
@@ -92,23 +83,7 @@ namespace syntax {
 				}
 				// symbol
 				else {
-					auto end = src;
-					// params must end with a param token
-					if (isParam) {
-						ws();
-						if (*src != token::symbol::ParamEndToken) {
-							push(token::Error, (token::error{ false, start, src - start }));
-							continue;
-						}
-						shift();
-					}
-					push(token::Symbol, (token::symbol{ start, end - start, isParam }));
-					continue;
-				}
-
-				// params must be symbols
-				if (isParam) {
-					push(token::Error, (token::error{ false, start, src - start }));
+					push(token::Symbol, (token::symbol{ start, src - start }));
 					continue;
 				}
 				push(token::Constant, c);
@@ -223,9 +198,11 @@ namespace syntax {
 			case syntax::SequenceDivHard:
 			case syntax::SequenceBegin:
 			case syntax::SequenceEnd:
-			case syntax::Abstraction:
-			case syntax::AbstractionSequenceBegin:
-			case syntax::AbstractionSequenceEnd:
+			case syntax::Definition:
+			case syntax::DefinitionSequenceBegin:
+			case syntax::DefinitionSequenceEnd:
+			case syntax::ParameterBegin:
+			case syntax::ParameterEnd:
 				push(token::Particle, (particle)*src);
 				break;
 			default:

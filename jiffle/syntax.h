@@ -22,21 +22,24 @@ namespace syntax {
 		SequenceBegin = '(',	// value sequence starting token (each scope is an implicit sequence)
 		SequenceEnd = ')',	// value sequence ending token
 
-		// Abstraction
-		Abstraction = '=',		// defines an abstraction 
-		AbstractionSequenceBegin = '{',	// abstraction + sequence begin '=('
-		AbstractionSequenceEnd = '}',	// abstraction + sequence end ')'
+		// Definition
+		Definition = '=',		// defines an abstraction 
+		DefinitionSequenceBegin = '{',	// definition + sequence begin '=('
+		DefinitionSequenceEnd = '}',	// definition + sequence end ')'
+
+		// Parameter
+		ParameterBegin = '[',	// start of argument group for definitions
+		ParameterEnd = ']',		// end of arguments group for definitions
+		
 
 		//Reference = '&',		// reference a symbol without evaluating
 
-
 		// '\' escape newline separator
-		// '{}' abstraction (sequence) (equivalent to '=()')
 		// '<-' forked abstraction (for each in sequence, original order is maintained)
 		// '|' variance (polymorphism)
 		// '..' range (variance for numbers and characters) (sequence for list indices)
 		// ':' specification
-		// '.' composition
+		// '.' composition ('.foo' makes it private to scope)
 		// '->' flow mapping (if lhs is evaluated, then compute rhs)
 		// '@' get index in sequence
 		// '~' negation (variation inversion)
@@ -87,12 +90,8 @@ namespace syntax {
 			constant::data data;
 		};
 		struct symbol {
-			static const char ParamStartToken = '[';
-			static const char ParamEndToken = ']';
-
 			const char* name;
 			int length;
-			bool isParam;
 		};
 		struct error {
 			static const char Token = '`';
@@ -144,26 +143,38 @@ namespace syntax {
 	struct value : public expr {
 		const syntax::token *token;
 	};
+	struct object : public expr {
+		const syntax::token::symbol *symbol;
+
+		object() :symbol(nullptr) {}
+	};
 	struct evaluation : public expr {
 		std::vector<expr::ptr> terms;
 	};
+	struct definition : public expr {
+		const syntax::token::symbol *symbol;
+		std::vector<expr::ptr> parameters;
+		expr::ptr content;
+
+		definition() :symbol(nullptr) {}
+	};
 	struct sequence : public expr {
 		enum flags{
-			None		= 0,
-			Explicit	= 1, // has ','
-			Abstraction = 2, // uses '{}' instead
+			// bracket types are mutually exclusive
+			None		= 0,	// uses '()' by default
+			Definition  = 1,	// uses '{}' instead
+			Parameters	= 2,	// uses '[]' instead
+			BracketMask = 3,	// type of brackets
+
+			// other properties
+			Explicit = 4,		// has ','
 		};
 		int flags;
 		std::vector<expr::ptr> items;
 
-		sequence() : flags(None) {}
-	};
-	struct abstraction : public expr {
-		const syntax::token::symbol* symbol;
-		std::vector<const syntax::token::symbol*> params;
-		expr::ptr content;
+		std::vector<const definition*> symtable;
 
-		abstraction() : symbol(nullptr) {}
+		sequence() : flags(None) {}
 	};
 	
 	// parse ------------------------------------------------------------------

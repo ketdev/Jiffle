@@ -1,49 +1,33 @@
-# value abstractions
-foo = 3
 
-# evaluation abstractions (functions)
-[a] add [b] {
-	a __plus__ b
+three = 3
+ident [x] = x
+swap [a,b] { b,a }
+
+three
+ident 'hi'
+swap ('yes','no')
+unresolved
+
+class {
+	method [x] {
+		x
+	}
 }
 
-math.floor(3.5,3)
+## classes are sequences with only abstractions
+#myClass {
+#	member = 3
+#	field = 4
+#	## '.' makes it private within class scope
+#	#.foo [a] {
+#	#	a
+#	#}
+#}
+## everything is extensible
+##myClass.bar { 'hello!' }
 
-swap [a,b] { b,a } # can filter input type as sequence
-
-#head [a,b..] = a
-#tail [a..,b] = b
-
-
-# anonymous
-'A' [a][b]{ a concat b } 'B' # 'AB'
-
-# symbol (invoked)
-foo
 
 # reference (not invoked)
 #&foo
 
-2 add 2 # 4
-
-
-# ( 'hi' )
-# 3 * (3 + 3)
-# 
-# 2 + 2 // 4
-# 3 + (1 + 2) // 6; can nest, 
-# // order of operation is always from left to right, 
-# // invoking functions when encountered
-#  
-# // data sequences, can mix types
-# ( 1,2,3,'hi' )
-# 
-# // strings are sequences of characters
-# ( 'h','i' ) // string
-# ( "hello ","world" ) // sequence of strings != string
-# // to get functions as literals, escape their evaluation
-# ( 3,\+,1 ) // 3,+,1 sequence
-#  
-# // functions
-# [a] add [b] = a + b
-# 3 add 8 // 11
 

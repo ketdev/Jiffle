@@ -57,9 +57,11 @@ namespace syntax {
 	}
 
 	std::string dump(expr::ptr e, int level) {
+		if (!e) return "";
 		std::stringstream ss("");
+		auto indent = std::string(level * 4, ' ');
 
-		ss << std::string(level * 4, ' ');
+		ss << indent;
 		if (e->error) 
 			ss << "\033[31;01mERROR ";		
 
@@ -67,21 +69,25 @@ namespace syntax {
 			auto val = expr::as<value>(e);
 			ss << dump(*val->token) << std::endl;
 		}
-		else if (expr::is<abstraction>(e)) {
-			auto abs = expr::as<abstraction>(e);
-			ss << "\033[33;01mABSTRACTION ";
-			if (abs->symbol)
-				ss << "\033[22;37m[" << std::string(abs->symbol->name, abs->symbol->length) << "] ";
+		else if (expr::is<object>(e)) {
+			auto obj = expr::as<object>(e);
+			ss << "\033[35;01mOBJECT ";
+			ss << "\033[22;37m[" << std::string(obj->symbol->name, obj->symbol->length) << "] ";
+			ss << std::endl;
+		}
+		else if (expr::is<definition>(e)) {
+			auto def = expr::as<definition>(e);
+			ss << "\033[33;01mDEFINITION ";
+			if (def->symbol)
+				ss << "\033[22;37m[" << std::string(def->symbol->name, def->symbol->length) << "] ";
 			else
 				ss << "(ANONYMOUS) ";
-			ss << "\033[22;37m[";
-			for (size_t i = 0; i < abs->params.size(); i++){
-				if (i > 0) ss << ", ";
-				auto p = abs->params[i];
-				ss << std::string(p->name, p->length);
+			ss << std::endl;
+			for (size_t i = 0; i < def->parameters.size(); i++){
+				auto p = def->parameters[i];
+				ss << dump(p, level+1);
 			}
-			ss << "]" << std::endl;
-			ss << dump(abs->content, level + 1);
+			ss << dump(def->content, level + 1);
 		}
 		else if (expr::is<evaluation>(e)) {
 			auto eval = expr::as<evaluation>(e);
@@ -92,11 +98,18 @@ namespace syntax {
 		else if (expr::is<sequence>(e)) {
 			auto seq = expr::as<sequence>(e);
 			ss << "\033[32;22mSEQUENCE ";
+			if (seq->flags & sequence::Definition)
+				ss << "(DEFINITION) ";
+			if (seq->flags & sequence::Parameters)
+				ss << "(PARAMETERS) ";
 			if (seq->flags & sequence::Explicit)
 				ss << "(EXPLICIT) ";
-			if (seq->flags & sequence::Abstraction)
-				ss << "(ABSTRACTION) ";
 			ss << std::endl;
+			ss << indent << "\033[35;22mSYMBOLS [";
+			for each (auto def in seq->symtable) {
+				ss << std::string(def->symbol->name, def->symbol->length) << " ";
+			}
+			ss << "]" << std::endl;
 			for each (auto e in seq->items)
 				ss << dump(e, level + 1);
 		}
