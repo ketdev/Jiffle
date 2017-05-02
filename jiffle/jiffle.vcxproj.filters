@@ -2,13 +2,46 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="syntax_tokenize.cpp" />
-    <ClCompile Include="syntax_parse.cpp" />
-    <ClCompile Include="syntax_dump.cpp" />
-    <ClCompile Include="syntax_evaluate.cpp" />
+    <ClCompile Include="syntax_dump.cpp">
+      <Filter>syntax\detail</Filter>
+    </ClCompile>
+    <ClCompile Include="syntax_evaluate.cpp">
+      <Filter>syntax\detail</Filter>
+    </ClCompile>
+    <ClCompile Include="syntax_parse.cpp">
+      <Filter>syntax\detail</Filter>
+    </ClCompile>
+    <ClCompile Include="syntax_tokenize.cpp">
+      <Filter>syntax\detail</Filter>
+    </ClCompile>
+    <ClCompile Include="syntax_read.cpp">
+      <Filter>syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="syntax_test.cpp">
+      <Filter>syntax</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="syntax.h" />
     <ClInclude Include="ansicolor.h" />
+    <ClInclude Include="syntax.h">
+      <Filter>syntax\detail</Filter>
+    </ClInclude>
+    <ClInclude Include="read.h">
+      <Filter>syntax</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="syntax">
+      <UniqueIdentifier>{6f8975a7-9eac-4fe8-80d0-cbf07cef8639}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="eval">
+      <UniqueIdentifier>{48a8deae-c830-42d9-b811-068358931339}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="codegen">
+      <UniqueIdentifier>{54811257-ac1c-4831-99d5-c42fcb07871e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="syntax\detail">
+      <UniqueIdentifier>{00972c91-f06a-4b73-8128-a46962420e7e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
 </Project>

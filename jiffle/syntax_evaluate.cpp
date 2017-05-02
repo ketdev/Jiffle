@@ -2,10 +2,10 @@
 
 namespace syntax {
 
-	expr::ptr eval(const expr::ptr& e) {
+	node::ptr eval(const node::ptr& e) {
 		if (e->error) return e;
 
-		expr::ptr ret;
+		node::ptr ret;
 
 			
 

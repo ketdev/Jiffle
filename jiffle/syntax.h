@@ -116,9 +116,62 @@ namespace syntax {
 	tokens tokenize(const std::string& input);
 	
 	// expressions ------------------------------------------------------------
-
+	
+	extern int _uid;
+	typedef std::shared_ptr<void> handle;
+	template<typename T>
 	struct expr {
-		typedef std::shared_ptr<expr> ptr;
+
+		expr() : _ptr(new T){ }
+		template<typename ...Args>
+		expr(Args... args) : _ptr(new T(args...)) { }
+		expr(handle ptr) : _ptr(ptr){}
+
+		static int uid() {
+			static int id = _uid++;
+			return id;
+		}
+		T* operator->() {
+			return reinterpret_cast<T*>(_ptr.get());
+		}
+		operator handle() {
+			return _ptr;
+		}
+	private:
+		handle _ptr;
+	};
+
+	// --
+
+	struct error {
+		const syntax::token *token;
+		error(const syntax::token *token = nullptr) : token(token) {}
+	};
+	struct value {
+		const syntax::token *token;
+		value(const syntax::token *token = nullptr) : token(token) {}
+	};
+	struct sequence {
+		enum type {
+			Tuple,			// '()' default
+			TupleExplicit,	// '(,)'
+			Abstraction,	// '{}' 
+			Parameters,		// '[]'
+		};
+		sequence::type type;
+		std::vector<handle> items;
+
+		sequence() : type(Tuple) {}
+	};
+	struct evaluation {
+		std::vector<handle> terms;
+	};
+
+
+	////////////
+
+	struct node {
+		typedef std::shared_ptr<node> ptr;
 
 		bool error;
 
@@ -136,29 +189,32 @@ namespace syntax {
 		}
 
 	protected:
-		expr():error(false){}
-		virtual ~expr() {};
+		node() :error(false) {}
+		virtual ~node() {};
 	};
 
-	struct value : public expr {
+
+	struct _value : public node {
 		const syntax::token *token;
+
+		_value(const syntax::token *token = nullptr) :token(token) {}
 	};
-	struct object : public expr {
+	struct _object : public node {
 		const syntax::token::symbol *symbol;
 
-		object() :symbol(nullptr) {}
+		_object() :symbol(nullptr) {}
 	};
-	struct evaluation : public expr {
-		std::vector<expr::ptr> terms;
+	struct _evaluation : public node {
+		std::vector<node::ptr> terms;
 	};
-	struct definition : public expr {
+	struct _definition : public node {
 		const syntax::token::symbol *symbol;
-		std::vector<expr::ptr> parameters;
-		expr::ptr content;
+		std::vector<node::ptr> parameters;
+		node::ptr content;
 
-		definition() :symbol(nullptr) {}
+		_definition() :symbol(nullptr) {}
 	};
-	struct sequence : public expr {
+	struct _sequence : public node {
 		enum flags{
 			// bracket types are mutually exclusive
 			None		= 0,	// uses '()' by default
@@ -170,24 +226,24 @@ namespace syntax {
 			Explicit = 4,		// has ','
 		};
 		int flags;
-		std::vector<expr::ptr> items;
+		std::vector<node::ptr> items;
 
-		std::vector<const definition*> symtable;
+		std::vector<const _definition*> symtable;
 
-		sequence() : flags(None) {}
+		_sequence() : flags(None) {}
 	};
 	
 	// parse ------------------------------------------------------------------
 
-	expr::ptr parse(const tokens& sourcecode);
+	node::ptr parse(const tokens& sourcecode);
 
 	// dump -------------------------------------------------------------------
 
 	std::string dump(const token& t);
-	std::string dump(expr::ptr e, int level = 0);
+	std::string dump(node::ptr e, int level = 0);
 
 	// evaluate ---------------------------------------------------------------
 
-	expr::ptr eval(const expr::ptr& expr);
+	node::ptr eval(const node::ptr& expr);
 
 }

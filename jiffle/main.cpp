@@ -8,8 +8,6 @@
 #include "syntax.h"
 #include "ansicolor.h"
 
-//#include "eval.h"
-
 // helper functions
 
 std::chrono::time_point<std::chrono::steady_clock> clockTime() {
@@ -26,7 +24,7 @@ std::string loadInput(const char* source) {
 	std::ifstream input(source);
 
 	input.seekg(0, std::ios::end);
-	str.reserve(input.tellg());
+	str.reserve((size_t)input.tellg());
 	input.seekg(0, std::ios::beg);
 
 	// extra parenthesis is essential
@@ -39,7 +37,11 @@ std::string loadInput(const char* source) {
 
 // entry point
 
+namespace syntax { void test(); }
+
 int main(int argc, char* argv[]) {
+	syntax::test();
+	
 	if (argc != 2) {
 		std::cout << "Usage: jiffle <source.jfl>" << std::endl;
 		return 1;

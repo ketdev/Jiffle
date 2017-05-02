@@ -1,26 +1,83 @@
 #include "syntax.h"
 #include <stack>
+#include <map>
 #include <iostream>
 
 namespace syntax {
+	
+	int _uid = 0;
 
+	class exprmap {
+	public:
+		template<typename T>
+		void push(expr<T>& val) {
+			auto &stack = _map[expr<T>::uid()];
+			// restart item
+			if (!stack.empty() && !stack.top()) {
+				stack.top() = val;
+			}
+			else {
+				stack.push(val);
+			}
+		}
+
+		template<typename T>
+		expr<T> getmake() {
+			auto &stack = _map[expr<T>::uid()];
+			if (stack.empty()) {
+				stack.push(expr<T>());
+			}
+			return expr<T>(stack.top());
+		}
+
+		template<typename T>
+		bool empty() {
+			auto &stack = _map[expr<T>::uid()];
+			return (stack.empty() || !stack.top());
+		}
+
+	private:
+		// uid mapped current editing expressions
+		std::map<int, std::stack<handle>> _map;
+	};
+
+	template<typename T>
+	static void push(std::map<int, std::stack<node::ptr>>& map, expr<T>& val) {
+		auto &stack = map[expr<T>::uid()];
+		// restart item
+		if (!stack.empty() && !stack.top()){
+			stack.top() = val;
+		}
+		else {
+			stack.push(val);
+		}
+	}
+		
 #define shift() do{ length--; code++; }while(0);
 
-	expr::ptr parse(const tokens& sourcecode) {
+	node::ptr parse(const tokens& sourcecode) {
 		const token* code = &sourcecode[0];
 		size_t length = sourcecode.size();
 		
-		auto entry = expr::make<sequence>();
-		std::stack<sequence*> S;
-		std::stack<evaluation*> E;
-		S.push(expr::as<sequence>(entry));
-		E.push(nullptr);
-		expr::ptr tmp;
+		auto module = expr<sequence>();
+		// uid mapped current editing expressions
+		exprmap emap;
+		emap.push(module);
 		
-		auto pushExpr = [&](expr::ptr& val) {
+		////////////////////////
+
+		auto entry = node::make<_sequence>();
+		std::stack<_sequence*>	S;
+		std::stack<_evaluation*> E;
+
+		S.push(node::as<_sequence>(entry));
+		E.push(nullptr);
+		node::ptr tmp;
+		
+		auto pushExpr = [&](node::ptr& val) {
 			if (!E.top()) {
-				auto e = expr::make<evaluation>();
-				E.top() = expr::as<evaluation>(e);
+				auto e = node::make<_evaluation>();
+				E.top() = node::as<_evaluation>(e);
 				S.top()->items.push_back(e);
 			}
 			E.top()->terms.push_back(val);
@@ -28,11 +85,13 @@ namespace syntax {
 				E.top()->error = true;
 		};
 		auto pushErr = [&]() {
-			tmp = expr::make<value>();
+			tmp = node::make<_value>();
 			tmp->error = true;
-			expr::as<value>(tmp)->token = code;
+			node::as<_value>(tmp)->token = code;
 			pushExpr(tmp);
 		};
+
+		// match with sequence::flags bracket numberings
 		constexpr int bracketTypeMap[] = {
 			syntax::SequenceEnd,
 			syntax::DefinitionSequenceEnd,
@@ -46,19 +105,39 @@ namespace syntax {
 
 			// constants ------------------------------------------------------
 			if (length 
-				&& (code->type == token::Constant || code->type == token::Error)) {
-				tmp = expr::make<value>();
+				&& (code->type == token::Constant || code->type == token::Error)) {				
+				
+				// if first, make new evaluation in sequence
+				if (emap.empty<evaluation>())
+					emap.getmake<sequence>()->items.push_back(
+						emap.getmake<evaluation>()
+					);
+
+				// add constant to current evaluation
+				if (code->type == token::Error)
+					emap.getmake<evaluation>()->terms.push_back(
+						expr<error>(code)
+					);				
+				else // value
+					emap.getmake<evaluation>()->terms.push_back(
+						expr<value>(code)
+					);
+				
+				///////////
+				tmp = node::make<_value>();
 				tmp->error = code->type == token::Error;
-				if (S.top()->flags & sequence::Parameters)
+				if (S.top()->flags & _sequence::Parameters)
 					tmp->error = true;				
-				expr::as<value>(tmp)->token = code;
+				node::as<_value>(tmp)->token = code;
 				pushExpr(tmp);
 			}
 
 			// objects --------------------------------------------------------
 			else if (length && code->type == token::Symbol) {
-				tmp = expr::make<object>();
-				expr::as<object>(tmp)->symbol = &code->data.symbol;
+
+				///////////
+				tmp = node::make<_object>();
+				node::as<_object>(tmp)->symbol = &code->data.symbol;
 				pushExpr(tmp);
 			}
 
@@ -70,8 +149,8 @@ namespace syntax {
 				case syntax::DefinitionSequenceBegin:
 				case syntax::Definition:					
 				{					
-					tmp = expr::make<definition>();
-					auto def = expr::as<definition>(tmp);
+					tmp = node::make<_definition>();
+					auto def = node::as<_definition>(tmp);
 
 					if (!E.top()) {
 						def->error = true;
@@ -79,8 +158,8 @@ namespace syntax {
 					else { 
 						// new definition
 						// [optional] start with symbol
-						auto head = expr::as<object>(E.top()->terms.front());
-						int index = 0;
+						auto head = node::as<_object>(E.top()->terms.front());
+						size_t index = 0;
 						if (head) {
 							def->symbol = head->symbol;
 							S.top()->symtable.push_back(def);
@@ -90,8 +169,8 @@ namespace syntax {
 						// then parameter sequences follow
 						for (; index < E.top()->terms.size(); index++) {
 							auto ptr = E.top()->terms[index];
-							auto seq = expr::as<sequence>(ptr);
-							if (!seq || !(seq->flags & sequence::Parameters)) {
+							auto seq = node::as<_sequence>(ptr);
+							if (!seq || !(seq->flags & _sequence::Parameters)) {
 								ptr->error = true;
 								def->error = true;
 							}
@@ -102,15 +181,15 @@ namespace syntax {
 					}
 					pushExpr(tmp);
 
-					def->content = expr::make<sequence>();
+					def->content = node::make<_sequence>();
 					if (code->data.particle == syntax::DefinitionSequenceBegin) {
-						S.push(expr::as<sequence>(def->content));
-						S.top()->flags |= sequence::Definition;
+						S.push(node::as<_sequence>(def->content));
+						S.top()->flags |= _sequence::Definition;
 						E.push(nullptr);
 					} else {
-						tmp = expr::make<evaluation>();
-						expr::as<sequence>(def->content)->items.push_back(tmp);
-						E.top() = expr::as<evaluation>(tmp);
+						tmp = node::make<_evaluation>();
+						node::as<_sequence>(def->content)->items.push_back(tmp);
+						E.top() = node::as<_evaluation>(tmp);
 					}
 				}
 				break;
@@ -118,13 +197,13 @@ namespace syntax {
 				// Sub Sequence -----------------------------------------------
 				case syntax::SequenceBegin:
 				case syntax::ParameterBegin:
-					tmp = expr::make<sequence>();
+					tmp = node::make<_sequence>();
 					pushExpr(tmp);
-					S.push(expr::as<sequence>(tmp));
+					S.push(node::as<_sequence>(tmp));
 					E.push(nullptr);
 					// set sequence type
 					if (code->data.particle == syntax::ParameterBegin)
-						S.top()->flags |= sequence::Parameters;				
+						S.top()->flags |= _sequence::Parameters;				
 					break;
 
 				case syntax::SequenceEnd:
@@ -135,7 +214,7 @@ namespace syntax {
 						S.size() == 1
 						// match begin-end bracket type
 						|| code->data.particle
-						!= bracketTypeMap[S.top()->flags & sequence::BracketMask] 
+						!= bracketTypeMap[S.top()->flags & _sequence::BracketMask] 
 					) {
 						pushErr();
 						break;
@@ -146,7 +225,7 @@ namespace syntax {
 
 				// Sequence ---------------------------------------------------
 				case syntax::SequenceDivHard:
-					S.top()->flags |= sequence::Explicit;
+					S.top()->flags |= _sequence::Explicit;
 				case syntax::SequenceDivSoft:
 					E.top() = nullptr;
 					break;

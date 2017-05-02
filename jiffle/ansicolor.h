@@ -44,7 +44,7 @@ INLINE int __write_w32(const char* buf, FILE* fp) {
     COORD coord;
     const char* ptr = buf;
 
-    handle = (HANDLE)_get_osfhandle(fileno(fp));
+    handle = (HANDLE)_get_osfhandle(_fileno(fp));
 
     //// Attempt to use virtual terminal
     //DWORD dwMode = 0;

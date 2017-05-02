@@ -56,7 +56,7 @@ namespace syntax {
 		return ss.str();
 	}
 
-	std::string dump(expr::ptr e, int level) {
+	std::string dump(node::ptr e, int level) {
 		if (!e) return "";
 		std::stringstream ss("");
 		auto indent = std::string(level * 4, ' ');
@@ -65,18 +65,18 @@ namespace syntax {
 		if (e->error) 
 			ss << "\033[31;01mERROR ";		
 
-		if (expr::is<value>(e)) {
-			auto val = expr::as<value>(e);
+		if (node::is<_value>(e)) {
+			auto val = node::as<_value>(e);
 			ss << dump(*val->token) << std::endl;
 		}
-		else if (expr::is<object>(e)) {
-			auto obj = expr::as<object>(e);
-			ss << "\033[35;01mOBJECT ";
+		else if (node::is<_object>(e)) {
+			auto obj = node::as<_object>(e);
+			ss << "\033[32;01mOBJECT ";
 			ss << "\033[22;37m[" << std::string(obj->symbol->name, obj->symbol->length) << "] ";
 			ss << std::endl;
 		}
-		else if (expr::is<definition>(e)) {
-			auto def = expr::as<definition>(e);
+		else if (node::is<_definition>(e)) {
+			auto def = node::as<_definition>(e);
 			ss << "\033[33;01mDEFINITION ";
 			if (def->symbol)
 				ss << "\033[22;37m[" << std::string(def->symbol->name, def->symbol->length) << "] ";
@@ -89,20 +89,20 @@ namespace syntax {
 			}
 			ss << dump(def->content, level + 1);
 		}
-		else if (expr::is<evaluation>(e)) {
-			auto eval = expr::as<evaluation>(e);
+		else if (node::is<_evaluation>(e)) {
+			auto eval = node::as<_evaluation>(e);
 			ss << "\033[34;01mEVALUATION " << std::endl;
 			for each (auto e in eval->terms)
 				ss << dump(e,level+1);
 		}
-		else if (expr::is<sequence>(e)) {
-			auto seq = expr::as<sequence>(e);
-			ss << "\033[32;22mSEQUENCE ";
-			if (seq->flags & sequence::Definition)
+		else if (node::is<_sequence>(e)) {
+			auto seq = node::as<_sequence>(e);
+			ss << "\033[35;01mSEQUENCE ";
+			if (seq->flags & _sequence::Definition)
 				ss << "(DEFINITION) ";
-			if (seq->flags & sequence::Parameters)
+			if (seq->flags & _sequence::Parameters)
 				ss << "(PARAMETERS) ";
-			if (seq->flags & sequence::Explicit)
+			if (seq->flags & _sequence::Explicit)
 				ss << "(EXPLICIT) ";
 			ss << std::endl;
 			ss << indent << "\033[35;22mSYMBOLS [";

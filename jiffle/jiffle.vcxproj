@@ -143,10 +143,13 @@
     <ClCompile Include="syntax_dump.cpp" />
     <ClCompile Include="syntax_evaluate.cpp" />
     <ClCompile Include="syntax_parse.cpp" />
+    <ClCompile Include="syntax_read.cpp" />
+    <ClCompile Include="syntax_test.cpp" />
     <ClCompile Include="syntax_tokenize.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ansicolor.h" />
+    <ClInclude Include="read.h" />
     <ClInclude Include="syntax.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
