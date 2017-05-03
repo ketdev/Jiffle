@@ -140,17 +140,16 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="syntax_dump.cpp" />
-    <ClCompile Include="syntax_evaluate.cpp" />
-    <ClCompile Include="syntax_parse.cpp" />
-    <ClCompile Include="syntax_read.cpp" />
-    <ClCompile Include="syntax_test.cpp" />
-    <ClCompile Include="syntax_tokenize.cpp" />
+    <ClCompile Include="syntax\detail\syntax.detail.token.cpp" />
+    <ClCompile Include="syntax\detail\syntax.detail.token.test.cpp" />
+    <ClCompile Include="syntax\syntax.read.cpp" />
+    <ClCompile Include="syntax\syntax.read.test.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ansicolor.h" />
-    <ClInclude Include="read.h" />
-    <ClInclude Include="syntax.h" />
+    <ClInclude Include="syntax\detail\pos.h" />
+    <ClInclude Include="syntax\detail\token.h" />
+    <ClInclude Include="syntax\read.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

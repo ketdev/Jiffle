@@ -2,32 +2,29 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="syntax_dump.cpp">
-      <Filter>syntax\detail</Filter>
-    </ClCompile>
-    <ClCompile Include="syntax_evaluate.cpp">
-      <Filter>syntax\detail</Filter>
-    </ClCompile>
-    <ClCompile Include="syntax_parse.cpp">
-      <Filter>syntax\detail</Filter>
-    </ClCompile>
-    <ClCompile Include="syntax_tokenize.cpp">
-      <Filter>syntax\detail</Filter>
-    </ClCompile>
-    <ClCompile Include="syntax_read.cpp">
+    <ClCompile Include="syntax\syntax.read.cpp">
       <Filter>syntax</Filter>
     </ClCompile>
-    <ClCompile Include="syntax_test.cpp">
+    <ClCompile Include="syntax\syntax.read.test.cpp">
       <Filter>syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="syntax\detail\syntax.detail.token.cpp">
+      <Filter>syntax\detail</Filter>
+    </ClCompile>
+    <ClCompile Include="syntax\detail\syntax.detail.token.test.cpp">
+      <Filter>syntax\detail</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ansicolor.h" />
-    <ClInclude Include="syntax.h">
+    <ClInclude Include="syntax\read.h">
+      <Filter>syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="syntax\detail\token.h">
       <Filter>syntax\detail</Filter>
     </ClInclude>
-    <ClInclude Include="read.h">
-      <Filter>syntax</Filter>
+    <ClInclude Include="syntax\detail\pos.h">
+      <Filter>syntax\detail</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -41,7 +38,7 @@
       <UniqueIdentifier>{54811257-ac1c-4831-99d5-c42fcb07871e}</UniqueIdentifier>
     </Filter>
     <Filter Include="syntax\detail">
-      <UniqueIdentifier>{00972c91-f06a-4b73-8128-a46962420e7e}</UniqueIdentifier>
+      <UniqueIdentifier>{b4606012-04e5-4b93-a222-429a401b9fd3}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

@@ -5,7 +5,6 @@
 #include <map>
 #include <chrono>
 
-#include "syntax.h"
 #include "ansicolor.h"
 
 // helper functions
@@ -37,68 +36,56 @@ std::string loadInput(const char* source) {
 
 // entry point
 
-namespace syntax { void test(); }
+namespace syntax {
+	namespace detail {
+		void tokenize_test();
+	}
+	void read_test(); 
+}
 
 int main(int argc, char* argv[]) {
-	syntax::test();
-	
-	if (argc != 2) {
-		std::cout << "Usage: jiffle <source.jfl>" << std::endl;
-		return 1;
+	{
+		auto timer = clockTime();
+		syntax::detail::tokenize_test();
+		syntax::read_test();
+		std::cout << toMilli(clockMeasure(timer)) << " ms" << std::endl;
+		getchar();
+		return 0;
 	}
 
-	// 1. Load input(s)
-	auto timer = clockTime();
-	std::string input = loadInput(argv[1]);
-	std::cout << "Loader: " << toMilli(clockMeasure(timer)) << " ms" << std::endl;
-
-	// 2. Tokenize
-	timer = clockTime();
-	auto sourcecode = syntax::tokenize(input);
-	std::cout << "Tokenize: " << toMilli(clockMeasure(timer)) << " ms" << std::endl;
-
-	// 3. Parse
-	timer = clockTime();
-	auto ast = syntax::parse(sourcecode);
-	std::cout << "Parse: " << toMilli(clockMeasure(timer)) << " ms" << std::endl;
-
-
-	// 3b. Dump
-	ansi_fputs_out(syntax::dump(ast).c_str());
-
-	// 4. Evaluate
-	timer = clockTime();
-	auto res = syntax::eval(ast);
-	std::cout << "Evaluate: " << toMilli(clockMeasure(timer)) << " ms" << std::endl;
-
-	// 5. Print
-	timer = clockTime();
-	ansi_fputs_out(syntax::dump(res).c_str());
-	std::cout << "Print: " << toMilli(clockMeasure(timer)) << " ms" << std::endl;
-
-
-
-
-	/*
-	// 2b. Assemble back to source code
-	//std::cout << syntax::assemble(code) << std::endl;
-
-	// Built-in environment
-
-
-	// 3. Evaluate
-	timer = clockTime();
-	const value *codeptr = &code.values[0];
-	size_t codelen = code.values.size();
-	auto output = eval(codeptr, codelen);
-	std::cout << "Evaluate: " << toMilli(clockMeasure(timer)) << " ms" << std::endl;
-	
-	// 4. Assemble output (to code structure)
-	timer = clockTime();
-	auto assm = syntax::assemble(output);
-	std::cout << assm << std::endl;
-	std::cout << "Assemble: " << toMilli(clockMeasure(timer)) << " ms" << std::endl;
-	*/
+	//if (argc != 2) {
+	//	std::cout << "Usage: jiffle <source.jfl>" << std::endl;
+	//	return 1;
+	//}
+	//
+	//// 1. Load input(s)
+	//auto timer = clockTime();
+	//std::string input = loadInput(argv[1]);
+	//std::cout << "Loader: " << toMilli(clockMeasure(timer)) << " ms" << std::endl;
+	//
+	//// 2. Tokenize
+	//timer = clockTime();
+	//auto sourcecode = syntax::tokenize(input);
+	//std::cout << "Tokenize: " << toMilli(clockMeasure(timer)) << " ms" << std::endl;
+	//
+	//// 3. Parse
+	//timer = clockTime();
+	//auto ast = syntax::parse(sourcecode);
+	//std::cout << "Parse: " << toMilli(clockMeasure(timer)) << " ms" << std::endl;
+	//
+	//
+	//// 3b. Dump
+	//ansi_fputs_out(syntax::dump(ast).c_str());
+	//
+	//// 4. Evaluate
+	//timer = clockTime();
+	//auto res = syntax::eval(ast);
+	//std::cout << "Evaluate: " << toMilli(clockMeasure(timer)) << " ms" << std::endl;
+	//
+	//// 5. Print
+	//timer = clockTime();
+	//ansi_fputs_out(syntax::dump(res).c_str());
+	//std::cout << "Print: " << toMilli(clockMeasure(timer)) << " ms" << std::endl;
 
 	getchar();
 	return 0;
