@@ -35,9 +35,6 @@ namespace syntax {
 		value_error::type type;
 		std::string text;
 	};
-	struct value_symbol : public expr {
-		std::string name;
-	};
 	struct value_null : public value { };
 	struct value_bool : public value {
 		bool value;
@@ -67,15 +64,16 @@ namespace syntax {
 			Tuple,			// '()' default
 			Abstraction,	// '{}' 
 			Parameters,		// '[]'
+			Module,			// none, topmost
 		};
 
 		sequence::type type;
 		bool isExplicit; // has separator token
 	};
-
-	//struct object : public construct {
-	//	std::string name;
-	//};
+	
+	struct object : public construct {
+		std::string name;
+	};
 
 	// read -------------------------------------------------------------------
 

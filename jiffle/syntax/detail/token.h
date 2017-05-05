@@ -21,6 +21,11 @@ namespace syntax {
 			constexpr static char TokenError = '`';
 			constexpr static char TokenSequenceSeparator = ',';
 			constexpr static char TokenSequenceSeparatorImplicit = Newline;
+			constexpr static char TokenDefinition = '=';
+			constexpr static char TokenTupleStart = '(';
+			constexpr static char TokenTupleEnd = ')';
+			constexpr static char TokenDefinitionSequenceStart = '{';	// definition + sequence begin '=('
+			constexpr static char TokenDefinitionSequenceEnd = '}';		// definition + sequence end ')'
 
 		public:
 
@@ -39,9 +44,33 @@ namespace syntax {
 				String,
 
 				// Particles
-				SequenceSeparator, // ','
-				SequenceSeparatorImplicit, // '\n'
+				SequenceSeparator,			// ','
+				SequenceSeparatorImplicit,	// '\n'
+				Definition,					// '='
+				TupleStart,					// '('
+				TupleEnd,					// ')'
+				DefinitionSequenceStart,	// '{'
+				DefinitionSequenceEnd,		// '}'
 			};
+
+		//// Parameter
+		//ParameterBegin = '[',	// start of argument group for definitions
+		//ParameterEnd = ']',		// end of arguments group for definitions
+		//
+		//
+		////Reference = '&',		// reference a symbol without evaluating
+		//
+		//// '\' escape newline separator
+		//// '<-' forked abstraction (for each in sequence, original order is maintained)
+		//// '|' variance (polymorphism)
+		//// '..' range (variance for numbers and characters) (sequence for list indices)
+		//// ':' specification
+		//// '.' composition ('.foo' makes it private to scope)
+		//// '->' flow mapping (if lhs is evaluated, then compute rhs)
+		//// '@' get index in sequence
+		//// '~' negation (variation inversion)
+		//// '$' reflexive (updateable state)
+		//// '%' abstract (extern)
 
 		public:
 			token::type type;

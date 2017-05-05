@@ -49,8 +49,27 @@ namespace syntax {
 				assert(t[6].type == token::Comment);
 			}
 			{ // particles
-				single_token_test(&token::TokenSequenceSeparator, token::SequenceSeparator);
-				single_token_test(&token::TokenSequenceSeparatorImplicit, token::SequenceSeparatorImplicit);
+				single_token_test(
+					std::string(1,token::TokenSequenceSeparator).c_str(),
+					token::SequenceSeparator);
+				single_token_test(
+					std::string(1, token::TokenSequenceSeparatorImplicit).c_str(),
+					token::SequenceSeparatorImplicit);
+				single_token_test(
+					std::string(1, token::TokenDefinition).c_str(),
+					token::Definition);
+				single_token_test(
+					std::string(1, token::TokenTupleStart).c_str(),
+					token::TupleStart);
+				single_token_test(
+					std::string(1, token::TokenTupleEnd).c_str(),
+					token::TupleEnd);
+				single_token_test(
+					std::string(1, token::TokenDefinitionSequenceStart).c_str(),
+					token::DefinitionSequenceStart);
+				single_token_test(
+					std::string(1, token::TokenDefinitionSequenceEnd).c_str(),
+					token::DefinitionSequenceEnd);
 			}
 		}
 

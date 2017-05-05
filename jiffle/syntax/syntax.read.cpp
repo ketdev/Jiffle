@@ -44,6 +44,13 @@ namespace syntax {
 			pop(cstack);
 	}
 
+	// removes the top if it is the given construct type
+	template<typename C>
+	static void popIf(std::stack<construct*>& cstack) {
+		if (cstack.top()->as<C>() != nullptr)
+			pop(cstack);
+	}
+
 	// adds a new expression (T) to the top construct (C), 
 	// aquired using get, so it might create it if not current top
 	template<typename C, typename T>
@@ -64,8 +71,10 @@ namespace syntax {
 		return expr->as<T>();
 	}
 
+
 	expr::ptr read(const std::string & code) {
 		expr::ptr o = expr::make<sequence>(); // module sequence wrapper
+		o->as<sequence>()->type = sequence::Module;
 
 		// construct to push onto
 		std::stack<construct*> C;
@@ -85,30 +94,41 @@ namespace syntax {
 				break;
 
 			case detail::token::Null:
+				popIf<object>(C);
 				add<evaluation, value_null>(C, t.pos);
 				break;
 
 			case detail::token::True:
+				popIf<object>(C);
 				add<evaluation, value_bool>(C, t.pos)->value = true;
 				break;
 
 			case detail::token::False:
+				popIf<object>(C);
 				add<evaluation, value_bool>(C, t.pos)->value = false;
 				break;
 
 			case detail::token::Symbol:
-				add<evaluation, value_symbol>(C, t.pos)->name = code.substr(t.pos.ch, t.pos.len);
-				break;
+			{
+				popIf<object>(C);
+				auto o = add<evaluation, object>(C, t.pos);
+				o->name = code.substr(t.pos.ch, t.pos.len);
+				C.push(o);
+			}
+			break;
 
 			case detail::token::Integer:
+				popIf<object>(C);
 				add<evaluation, value_integer>(C, t.pos)->value = t.number.integer;
 				break;
 
 			case detail::token::Real:
+				popIf<object>(C);
 				add<evaluation, value_real>(C, t.pos)->value = t.number.real;
 				break;
 
 			case detail::token::String:
+				popIf<object>(C);
 				add<evaluation, value_string>(C, t.pos)->value = code.substr(t.pos.ch + 1, t.pos.len - 2);
 				break;
 
@@ -118,8 +138,55 @@ namespace syntax {
 				C.top()->as<sequence>()->isExplicit = t.type == detail::token::SequenceSeparator;
 				break;
 
+			case detail::token::Definition:
+			case detail::token::DefinitionSequenceStart:
+			{
+				// must follow an object (optionally with params)
+				auto o = C.top()->as<object>();
+				if (o != nullptr) {
+					if (t.type == detail::token::Definition)
+						C.push(add<object, evaluation>(C, t.pos));
+					else { // definition sequence
+						auto as = add<object, sequence>(C, t.pos);
+						as->type = sequence::Abstraction;
+						C.push(as);
+					}
+				}
+				else {
+					auto p = add<evaluation, value_error>(C, t.pos);
+					p->type = value_error::Syntax;
+					p->text = std::string("can only define identifiers");
+				}
+			}
+			break;
+
+			case detail::token::TupleStart:
+				C.push(add<evaluation, sequence>(C, t.pos));
+				break;
+
+			case detail::token::DefinitionSequenceEnd:
+			case detail::token::TupleEnd:
+			{
+				pop<sequence>(C);
+				// match parenthesis type
+				auto pt = C.top()->as<sequence>()->type;
+				if ((t.type == detail::token::DefinitionSequenceEnd && pt == sequence::Abstraction)
+					|| (t.type == detail::token::TupleEnd && pt == sequence::Tuple)) {
+					pop(C);
+					break;
+				}
+				else {
+					auto p = add<evaluation, value_error>(C, t.pos);
+					p->type = value_error::Syntax;
+					p->text = std::string("no matching opening parenthesis");
+				}
+			}
+			break;
+
+
 			case detail::token::UserError:
 			{
+				popIf<object>(C);
 				auto p = add<evaluation, value_error>(C, t.pos);
 				p->type = value_error::Custom;
 				p->text = code.substr(t.pos.ch + 1, t.pos.len - 2);
@@ -128,6 +195,7 @@ namespace syntax {
 
 			default: // SyntaxError
 			{
+				popIf<object>(C);
 				auto p = add<evaluation, value_error>(C, t.pos);
 				p->type = value_error::Syntax;
 				p->text = std::string("invalid syntax \"")
@@ -141,13 +209,14 @@ namespace syntax {
 
 		// close constructs
 		while (C.size() > 1) {
-			if (C.top()->as<evaluation>())
+			// missing construct closing
+			if (!C.top()->as<evaluation>() && !C.top()->as<object>()) {
 				pop(C);
-			else {
-				// error!!
-				// TODO: missing construct closing
-				pop(C);
+				auto p = add<evaluation, value_error>(C, t.pos);
+				p->type = value_error::Syntax;
+				p->text = std::string("matching closing parenthesis");
 			}
+			pop(C);
 		}
 
 		return o;

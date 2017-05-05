@@ -1,5 +1,7 @@
 #include "token.h"
 
+#include <map>
+
 namespace syntax {
 	namespace detail {
 		
@@ -62,6 +64,15 @@ namespace syntax {
 				reset();
 			};
 
+			std::map<char, enum token::type> particleMap;
+			particleMap[token::TokenSequenceSeparator] = token::SequenceSeparator;
+			particleMap[token::TokenSequenceSeparatorImplicit] = token::SequenceSeparatorImplicit;
+			particleMap[token::TokenDefinition] = token::Definition;
+			particleMap[token::TokenTupleStart] = token::TupleStart;
+			particleMap[token::TokenTupleEnd] = token::TupleEnd;
+			particleMap[token::TokenDefinitionSequenceStart] = token::DefinitionSequenceStart;
+			particleMap[token::TokenDefinitionSequenceEnd] = token::DefinitionSequenceEnd;
+
 			while (GOOD) {
 				// skip whitespace --------------------------------------------
 				while (GOOD && isWhitespace(C)) {
@@ -71,22 +82,12 @@ namespace syntax {
 
 				// particles --------------------------------------------------
 				if (GOOD) {
-					bool handled = true;
-					switch (C) {
-					case token::TokenSequenceSeparator:
+					auto it = particleMap.find(C);
+					if (it != particleMap.end()) {
 						shift();
-						push(token::SequenceSeparator);
-						break;
-					case token::TokenSequenceSeparatorImplicit:
-						shift();
-						push(token::SequenceSeparatorImplicit);
-						break;
-					default:
-						handled = false;
-						break;
-					}
-					if (handled)
+						push(it->second);
 						continue;
+					}
 				}
 
 				// comment ----------------------------------------------------

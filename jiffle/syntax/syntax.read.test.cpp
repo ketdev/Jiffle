@@ -11,7 +11,7 @@ namespace syntax {
 			if (c == nullptr) break;
 			assert(c->items.size() < 2);
 			if (c->items.empty())
-				return nullptr;
+				return o;
 			o = c->items[0];
 		}
 		return o;
@@ -19,12 +19,14 @@ namespace syntax {
 
 	static void primitive_test() {
 		{ // empty
-			auto o = simple("");
-			assert(o == nullptr);
+			auto o = read("");
+			assert(o->as<sequence>() != nullptr);
+			assert(o->as<sequence>()->items.empty());
 		}
 		{ // comment
-			auto o = simple("# hello comment");
-			assert(o == nullptr);
+			auto o = read("# hello comment");
+			assert(o->as<sequence>()->items.empty());
+			assert(o->as<sequence>()->items.empty());
 		}
 		{ // error
 			auto input = "`";
@@ -69,7 +71,7 @@ namespace syntax {
 		{ // symbol
 			auto name = "foo";
 			auto o = simple(name);
-			auto p = o->as<value_symbol>();
+			auto p = o->as<object>();
 			assert(p != nullptr && p->name == name);
 			assert(p->pos.ch == 0);
 			assert(p->pos.len == strlen(name));
@@ -131,7 +133,7 @@ namespace syntax {
 
 		auto &i = e->items;
 		assert(i.size() == 3);
-		auto i0 = i[0]->as<value_symbol>();
+		auto i0 = i[0]->as<object>();
 		auto i1 = i[1]->as<value_integer>();
 		auto i2 = i[2]->as<value_integer>();
 		assert(i0 != nullptr && i1 != nullptr && i2 != nullptr);
@@ -160,10 +162,10 @@ namespace syntax {
 			auto input = "A,1,2.0,'hi'";
 			auto o = read(input);
 			auto s = o->as<sequence>();
-			assert(s->type == sequence::Tuple);
+			assert(s->type == sequence::Module);
 			assert(s->isExplicit == true);
 			assert(s->items.size() == 4);
-			auto i0 = s->items[0]->as<evaluation>()->items[0]->as<value_symbol>();
+			auto i0 = s->items[0]->as<evaluation>()->items[0]->as<object>();
 			auto i1 = s->items[1]->as<evaluation>()->items[0]->as<value_integer>();
 			auto i2 = s->items[2]->as<evaluation>()->items[0]->as<value_real>();
 			auto i3 = s->items[3]->as<evaluation>()->items[0]->as<value_string>();
@@ -175,10 +177,10 @@ namespace syntax {
 			auto input = "A\n1\n2.0\n'hi'";
 			auto o = read(input);
 			auto s = o->as<sequence>();
-			assert(s->type == sequence::Tuple);
+			assert(s->type == sequence::Module);
 			assert(s->isExplicit == false);
 			assert(s->items.size() == 4);
-			auto i0 = s->items[0]->as<evaluation>()->items[0]->as<value_symbol>();
+			auto i0 = s->items[0]->as<evaluation>()->items[0]->as<object>();
 			auto i1 = s->items[1]->as<evaluation>()->items[0]->as<value_integer>();
 			auto i2 = s->items[2]->as<evaluation>()->items[0]->as<value_real>();
 			auto i3 = s->items[3]->as<evaluation>()->items[0]->as<value_string>();
@@ -198,12 +200,145 @@ namespace syntax {
 			assert(i0->pos.ch == 9 && i1->pos.ch == 13);
 			assert(i0->value == 1.0 && i1->text == "err");
 		}
+		{ // empty slot
+			auto input = "1\n,2";
+			auto o = read(input);
+			auto i = o->as<sequence>()->items;
+			assert(i.size() == 2);
+		}
+		{ // parenthesis
+			auto input = "(1)";
+			auto o = read(input);
+			auto s = o->as<sequence>();
+			assert(s->isExplicit == false);
+			auto i = s->items;
+			assert(i.size() == 1);
+			i = i[0]->as<evaluation>()->items;
+			assert(i.size() == 1);
+			s = i[0]->as<sequence>();
+			assert(s->type == sequence::Tuple);
+			assert(s->isExplicit == false);
+			i = s->items;
+			assert(i.size() == 1);
+			i = i[0]->as<evaluation>()->items;
+			assert(i.size() == 1);
+			assert(i[0]->as<value_integer>()->value == 1);
+		}
+		{ // parenthesis explicit
+			auto input = "(1,)";
+			auto o = read(input);
+			auto s = o->as<sequence>();
+			assert(s->isExplicit == false);
+			auto i = s->items;
+			assert(i.size() == 1);
+			i = i[0]->as<evaluation>()->items;
+			assert(i.size() == 1);
+			s = i[0]->as<sequence>();
+			assert(s->type == sequence::Tuple);
+			assert(s->isExplicit == true);
+			i = s->items;
+			assert(i.size() == 1);
+			i = i[0]->as<evaluation>()->items;
+			assert(i.size() == 1);
+			assert(i[0]->as<value_integer>()->value == 1);
+		}
+		{ // nested test
+			auto input = "1,2,(3,4\n,5)\n6,7";
+			auto o = read(input);
+			auto i = o->as<sequence>()->items;
+			assert(i.size() == 5);
+			assert(i[0]->as<evaluation>()->items[0]->as<value_integer>()->value == 1);
+			assert(i[1]->as<evaluation>()->items[0]->as<value_integer>()->value == 2);
+			assert(i[3]->as<evaluation>()->items[0]->as<value_integer>()->value == 6);
+			assert(i[4]->as<evaluation>()->items[0]->as<value_integer>()->value == 7);
+			auto s = i[2]->as<evaluation>()->items[0]->as<sequence>();
+			assert(s->type == sequence::Tuple);
+			i = s->items;
+			assert(i[0]->as<evaluation>()->items[0]->as<value_integer>()->value == 3);
+			assert(i[1]->as<evaluation>()->items[0]->as<value_integer>()->value == 4);
+			assert(i[2]->as<evaluation>()->items[0]->as<value_integer>()->value == 5);
+		}
+		{ // closing missmatch
+			auto input = "2,),3";
+			auto o = read(input);
+			auto i = o->as<sequence>()->items;
+			assert(i.size() == 3);
+			assert(i[0]->as<evaluation>()->items[0]->as<value_integer>()->value == 2);
+			assert(i[1]->as<evaluation>()->items[0]->as<value_error>()->type == value_error::Syntax);
+			assert(i[2]->as<evaluation>()->items[0]->as<value_integer>()->value == 3);
+		}
+		{ // closing missing
+			auto input = "2,(,3";
+			auto o = read(input);
+			auto i = o->as<sequence>()->items;
+			assert(i.size() == 2);
+			assert(i[0]->as<evaluation>()->items[0]->as<value_integer>()->value == 2);
+			i = i[1]->as<evaluation>()->items;
+			assert(i.size() == 2);
+			assert(i[0]->as<sequence>()->items[0]->as<evaluation>()->items[0]->as<value_integer>()->value == 3);
+			assert(i[1]->as<value_error>()->type == value_error::Syntax);
+		}
+	}
+
+	static void abstraction_test() {
+		{ // simple
+			auto o = read("foo = 3");
+			auto i = o->as<sequence>()->items;
+			assert(i.size() == 1);
+			i = i[0]->as<evaluation>()->items;
+			assert(i.size() == 1);
+			auto obj = i[0]->as<object>();
+			assert(obj->name == "foo");
+			i = obj->items;
+			assert(i.size() == 1);
+			i = i[0]->as<evaluation>()->items;
+			assert(i.size() == 1);
+			auto v = i[0]->as<value_integer>();
+			assert(v->value == 3);
+		}
+		{ // eval abstraction
+			auto o = read("fib f = 3");
+			auto i = o->as<sequence>()->items;
+			assert(i.size() == 1);
+			i = i[0]->as<evaluation>()->items;
+			assert(i.size() == 2);
+			auto obj0 = i[0]->as<object>();
+			auto obj1 = i[1]->as<object>();
+			assert(obj0->name == "fib");
+			assert(obj1->name == "f");
+			assert(obj0->items.empty());
+			i = obj1->items;
+			assert(i.size() == 1);
+			i = i[0]->as<evaluation>()->items;
+			assert(i.size() == 1);
+			auto v = i[0]->as<value_integer>();
+			assert(v->value == 3);
+		}
+		{ // definition sequence
+			auto o = read("f { 1,2 }");
+			auto i = o->as<sequence>()->items;
+			assert(i.size() == 1);
+			i = i[0]->as<evaluation>()->items;
+			assert(i.size() == 1);
+			auto obj = i[0]->as<object>();
+			assert(obj->name == "f");
+			i = obj->items;
+			assert(i.size() == 1);
+			auto s = i[0]->as<sequence>();
+			assert(s->isExplicit == true);
+			assert(s->type == sequence::Abstraction);
+			i = s->items;
+			assert(i.size() == 2);
+			assert(i[0]->as<evaluation>()->items[0]->as<value_integer>()->value == 1);
+			assert(i[1]->as<evaluation>()->items[0]->as<value_integer>()->value == 2);
+		}
 	}
 
 	void read_test() {
 		primitive_test();
 		evaluation_test();
 		sequence_test();
+		abstraction_test();
 	}
 
 }

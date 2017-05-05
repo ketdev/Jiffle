@@ -1,6 +1,5 @@
 2 + 2 # 4
 
-
 three = 3
 ident [x] = x
 swap [a,b] { b,a }
