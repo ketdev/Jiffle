@@ -18,6 +18,18 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\jiffle\expr.parse.cpp" />
+    <ClCompile Include="src\jiffle\expr.parse_test.cpp" />
+    <ClCompile Include="src\jiffle\syntax.tokenize.cpp" />
+    <ClCompile Include="src\jiffle\syntax.tokenize_test.cpp" />
+    <ClCompile Include="src\main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\ansicolor.h" />
+    <ClInclude Include="src\jiffle\expr.h" />
+    <ClInclude Include="src\jiffle\syntax.h" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{8E162412-CCDE-440C-96F0-FD349F85E9C6}</ProjectGuid>
@@ -138,19 +150,6 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="syntax\detail\syntax.detail.token.cpp" />
-    <ClCompile Include="syntax\detail\syntax.detail.token.test.cpp" />
-    <ClCompile Include="syntax\syntax.read.cpp" />
-    <ClCompile Include="syntax\syntax.read.test.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="ansicolor.h" />
-    <ClInclude Include="syntax\detail\pos.h" />
-    <ClInclude Include="syntax\detail\token.h" />
-    <ClInclude Include="syntax\read.h" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

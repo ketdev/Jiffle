@@ -1,44 +1,32 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="syntax\syntax.read.cpp">
-      <Filter>syntax</Filter>
+    <Filter Include="jiffle">
+      <UniqueIdentifier>{0c36b809-0892-433a-8805-40c41ef44eef}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\jiffle\syntax.tokenize.cpp">
+      <Filter>jiffle</Filter>
     </ClCompile>
-    <ClCompile Include="syntax\syntax.read.test.cpp">
-      <Filter>syntax</Filter>
+    <ClCompile Include="src\jiffle\syntax.tokenize_test.cpp">
+      <Filter>jiffle</Filter>
     </ClCompile>
-    <ClCompile Include="syntax\detail\syntax.detail.token.cpp">
-      <Filter>syntax\detail</Filter>
+    <ClCompile Include="src\jiffle\expr.parse.cpp">
+      <Filter>jiffle</Filter>
     </ClCompile>
-    <ClCompile Include="syntax\detail\syntax.detail.token.test.cpp">
-      <Filter>syntax\detail</Filter>
+    <ClCompile Include="src\jiffle\expr.parse_test.cpp">
+      <Filter>jiffle</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ansicolor.h" />
-    <ClInclude Include="syntax\read.h">
-      <Filter>syntax</Filter>
+    <ClInclude Include="src\ansicolor.h" />
+    <ClInclude Include="src\jiffle\expr.h">
+      <Filter>jiffle</Filter>
     </ClInclude>
-    <ClInclude Include="syntax\detail\token.h">
-      <Filter>syntax\detail</Filter>
+    <ClInclude Include="src\jiffle\syntax.h">
+      <Filter>jiffle</Filter>
     </ClInclude>
-    <ClInclude Include="syntax\detail\pos.h">
-      <Filter>syntax\detail</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <Filter Include="syntax">
-      <UniqueIdentifier>{6f8975a7-9eac-4fe8-80d0-cbf07cef8639}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="eval">
-      <UniqueIdentifier>{48a8deae-c830-42d9-b811-068358931339}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="codegen">
-      <UniqueIdentifier>{54811257-ac1c-4831-99d5-c42fcb07871e}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="syntax\detail">
-      <UniqueIdentifier>{b4606012-04e5-4b93-a222-429a401b9fd3}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
 </Project>

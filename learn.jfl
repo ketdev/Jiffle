@@ -67,9 +67,7 @@ add3to 6 # 9
 myClass {
 	field = 4
 	# '.' makes it private within class scope
-	.foo [a] {
-		a
-	}
+	.foo [a] { field + a }
 }
 # everything is extensible
 myClass.bar { 'hello!' }
