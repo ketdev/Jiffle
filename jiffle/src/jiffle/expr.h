@@ -6,11 +6,11 @@
 
 namespace jiffle {
 	namespace expr {
-
+		
 		// expressions --------------------------------------------------------
 
 		enum type : unsigned char {
-			// special
+			// classification
 			ERROR_BIT		= 0x40,
 			STRUCTURE_BIT	= 0x80,
 
@@ -50,8 +50,8 @@ namespace jiffle {
 			std::list<node> items;		// for structures
 			union value_union {
 				bool boolean;
-				long long integer;
-				long double real;
+				data::integer_t integer;
+				data::real_t real;
 			} value;
 		};
 

@@ -2,6 +2,7 @@
 #include "ansicolor.h"
 #include "jiffle\syntax.h"
 #include "jiffle\expr.h"
+#include "jiffle\vm.h"
 
 #include <iostream>
 #include <fstream>
@@ -43,52 +44,20 @@ int main(int argc, char* argv[]) {
 
 	// entry ------------------------------------------------------------------
 
-	{
-		auto timer = clockTime();
-
-		jiffle::syntax::tokenize_test();
-		jiffle::expr::parse_test();
-
-		auto metric = clockMeasure(timer);
-		std::cout << "Tests: " << toSecs(metric) << " sec" << std::endl;
-		getchar();
-		return 0;
-	}
-
 	//if (argc != 2) {
 	//	std::cout << "Usage: jiffle <source.jfl>" << std::endl;
 	//	return 1;
 	//}
-	//
-	//// 1. Load input(s)
-	//auto timer = clockTime();
-	//std::string input = loadInput(argv[1]);
-	//std::cout << "Loader: " << toMilli(clockMeasure(timer)) << " ms" << std::endl;
-	//
-	//// 2. Tokenize
-	//timer = clockTime();
-	//auto sourcecode = syntax::tokenize(input);
-	//std::cout << "Tokenize: " << toMilli(clockMeasure(timer)) << " ms" << std::endl;
-	//
-	//// 3. Parse
-	//timer = clockTime();
-	//auto ast = syntax::parse(sourcecode);
-	//std::cout << "Parse: " << toMilli(clockMeasure(timer)) << " ms" << std::endl;
-	//
-	//
-	//// 3b. Dump
-	//ansi_fputs_out(syntax::dump(ast).c_str());
-	//
-	//// 4. Evaluate
-	//timer = clockTime();
-	//auto res = syntax::eval(ast);
-	//std::cout << "Evaluate: " << toMilli(clockMeasure(timer)) << " ms" << std::endl;
-	//
-	//// 5. Print
-	//timer = clockTime();
-	//ansi_fputs_out(syntax::dump(res).c_str());
-	//std::cout << "Print: " << toMilli(clockMeasure(timer)) << " ms" << std::endl;
+	
+	auto timer = clockTime();
 
+	jiffle::syntax::tokenize_test();
+	jiffle::expr::parse_test();
+	jiffle::vm::generate_test();
+
+	auto metric = clockMeasure(timer);
+	std::cout << "Tests: " << toSecs(metric) << " sec" << std::endl;
 	getchar();
-	return 0;
+	return 0;	
+
 }

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "data.h"
+
 #include <vector>
 #include <string>
 
@@ -61,7 +63,7 @@ namespace jiffle {
 		};
 
 		// structures ---------------------------------------------------------
-
+		
 		// expression position
 		struct pos {
 			size_t ch;
@@ -75,8 +77,8 @@ namespace jiffle {
 			type type;
 			pos pos;
 			union {
-				long long integer;
-				long double real;
+				data::integer_t integer;
+				data::real_t real;
 			} value;
 		};
 

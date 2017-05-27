@@ -207,6 +207,19 @@ namespace jiffle {
 				/********/assert_expr(expr::Evaluation,			{ 5,1,0,5 });
 				/**********/assert_symbol("x",					{ 5,1,0,5 });
 				assert_end();
+
+				// parameter definition ordering
+				set("f{}[x]");
+				assert_expr(expr::Module,						{ 0,6,0,0 });
+				/**/assert_expr(expr::Evaluation,				{ 0,6,0,0 });
+				/****/assert_symbol("f",						{ 0,3,0,0 });
+				/******/assert_expr(expr::DefinitionSequence,	{ 1,2,0,1 });
+				/****/assert_symbol("",							{ 3,3,0,3 });
+				/******/assert_expr(expr::Parameter,			{ 3,3,0,3 });
+				/********/assert_expr(expr::Evaluation,			{ 4,1,0,4 });
+				/**********/assert_symbol("x",					{ 4,1,0,4 });
+				assert_end();
+				
 			}
 
 		}

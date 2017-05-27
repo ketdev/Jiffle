@@ -19,13 +19,25 @@
     <ClCompile Include="src\jiffle\expr.parse_test.cpp">
       <Filter>jiffle</Filter>
     </ClCompile>
+    <ClCompile Include="src\jiffle\vm.generate.cpp">
+      <Filter>jiffle</Filter>
+    </ClCompile>
+    <ClCompile Include="src\jiffle\vm.generate_test.cpp">
+      <Filter>jiffle</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\ansicolor.h" />
+    <ClInclude Include="src\jiffle\syntax.h">
+      <Filter>jiffle</Filter>
+    </ClInclude>
     <ClInclude Include="src\jiffle\expr.h">
       <Filter>jiffle</Filter>
     </ClInclude>
-    <ClInclude Include="src\jiffle\syntax.h">
+    <ClInclude Include="src\jiffle\vm.h">
+      <Filter>jiffle</Filter>
+    </ClInclude>
+    <ClInclude Include="src\jiffle\data.h">
       <Filter>jiffle</Filter>
     </ClInclude>
   </ItemGroup>

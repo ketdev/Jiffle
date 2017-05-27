@@ -73,7 +73,7 @@ namespace jiffle {
 						|| _t.type == syntax::ParameterEnd) {
 						pop(isType(expr::Evaluation));
 
-						// regular definition ('=') 
+						// regular definition ('=') (and object)
 						// also closed at end of evaluation
 						pop(isType(expr::Definition));
 					}
@@ -167,6 +167,7 @@ namespace jiffle {
 						_node->text = "no matching opening curly bracket";
 					} else {
 						pop();
+						pop(isType(expr::Object));
 					}
 					break;
 

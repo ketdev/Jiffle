@@ -19,6 +19,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\jiffle\vm.generate.cpp" />
+    <ClCompile Include="src\jiffle\vm.generate_test.cpp" />
     <ClCompile Include="src\jiffle\expr.parse.cpp" />
     <ClCompile Include="src\jiffle\expr.parse_test.cpp" />
     <ClCompile Include="src\jiffle\syntax.tokenize.cpp" />
@@ -27,6 +29,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\ansicolor.h" />
+    <ClInclude Include="src\jiffle\data.h" />
+    <ClInclude Include="src\jiffle\vm.h" />
     <ClInclude Include="src\jiffle\expr.h" />
     <ClInclude Include="src\jiffle\syntax.h" />
   </ItemGroup>
