@@ -94,20 +94,18 @@ namespace jiffle {
 					push(expr::Evaluation, expr::Null);
 					break;
 				case syntax::True:
-					push(expr::Evaluation, expr::Bool);
-					_node->value.boolean = true;
+					push(expr::Evaluation, expr::True);
 					break;
 				case syntax::False:
-					push(expr::Evaluation, expr::Bool);
-					_node->value.boolean = false;
+					push(expr::Evaluation, expr::False);
 					break;
 				case syntax::Integer:
 					push(expr::Evaluation, expr::Integer);
-					_node->value.integer = _t.value.integer;
+					_node->text = code.substr(_t.pos.ch, _t.pos.len);
 					break;
 				case syntax::Real:
 					push(expr::Evaluation, expr::Real);
-					_node->value.real = _t.value.real;
+					_node->text = code.substr(_t.pos.ch, _t.pos.len);
 					break;
 				case syntax::String:
 					push(expr::Evaluation, expr::String);

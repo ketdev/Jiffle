@@ -36,18 +36,6 @@ namespace jiffle {
 				assert(_node->flags == flags);
 				next();
 			};
-			auto assert_bool = [&](bool v, syntax::pos p) {
-				assert(_node->value.boolean == v);
-				assert_expr(expr::Bool, p);
-			};
-			auto assert_integer = [&](long long v, syntax::pos p) {
-				assert(_node->value.integer == v);
-				assert_expr(expr::Integer, p);
-			};
-			auto assert_real = [&](long double v, syntax::pos p) {
-				assert(_node->value.real == v);
-				assert_expr(expr::Real, p);
-			};
 			auto assert_string = [&](const std::string& v, syntax::pos p) {
 				assert(_node->text == v);
 				assert_expr(expr::String, p);
@@ -81,10 +69,10 @@ namespace jiffle {
 			assert_expr(expr::Module,			{ 0,69,0,0 });
 			/**/assert_expr(expr::Evaluation,	{ 0,69,0,0 });
 			/****/assert_expr(expr::Null,		{ 0,4,0,0 });
-			/****/assert_bool(true,				{ 5,4,0,5 });
-			/****/assert_bool(false,			{ 10,5,0,10 });
-			/****/assert_integer(123456,		{ 16,6,0,16 });
-			/****/assert_real(123456.0,			{ 23,8,0,23 });
+			/****/assert_expr(expr::True,		{ 5,4,0,5 });
+			/****/assert_expr(expr::False,		{ 10,5,0,10 });
+			/****/assert_expr(expr::Integer,	{ 16,6,0,16 });
+			/****/assert_expr(expr::Real,		{ 23,8,0,23 });
 			/****/assert_string("hello world!", { 32,14,0,32 });
 			/****/assert_symbol("foo",			{ 47,3,0,47 });
 			/****/assert_error("err",			{ 51,5,0,51 });
@@ -97,9 +85,9 @@ namespace jiffle {
 				set("1,2,a b,`ok`");
 				assert_expr(expr::Module,			{ 0,12,0,0 }, flags::ExplicitStructure);
 				/**/assert_expr(expr::Evaluation,	{ 0,1,0,0 });
-				/****/assert_integer(1,				{ 0,1,0,0 });
+				/****/assert_expr(expr::Integer,	{ 0,1,0,0 });
 				/**/assert_expr(expr::Evaluation,	{ 2,1,0,2 });
-				/****/assert_integer(2,				{ 2,1,0,2 });
+				/****/assert_expr(expr::Integer,	{ 2,1,0,2 });
 				/**/assert_expr(expr::Evaluation,	{ 4,3,0,4 });
 				/****/assert_symbol("a",			{ 4,1,0,4 });
 				/****/assert_symbol("b",			{ 6,1,0,6 });
@@ -111,9 +99,9 @@ namespace jiffle {
 				set("1\n2");
 				assert_expr(expr::Module,				{ 0,3,0,0 });
 				/**/assert_expr(expr::Evaluation,		{ 0,1,0,0 });
-				/****/assert_integer(1,					{ 0,1,0,0 });
+				/****/assert_expr(expr::Integer,		{ 0,1,0,0 });
 				/**/assert_expr(expr::Evaluation,		{ 2,1,1,0 });
-				/****/assert_integer(2,					{ 2,1,1,0 });
+				/****/assert_expr(expr::Integer,		{ 2,1,1,0 });
 				assert_end();
 			}
 			
@@ -122,30 +110,30 @@ namespace jiffle {
 				set("1(2)3");
 				assert_expr(expr::Module,					{ 0,5,0,0 });
 				/**/assert_expr(expr::Evaluation,			{ 0,5,0,0 });
-				/****/assert_integer(1,						{ 0,1,0,0 });
+				/****/assert_expr(expr::Integer,			{ 0,1,0,0 });
 				/****/assert_expr(expr::Sequence,			{ 1,3,0,1 });
 				/******/assert_expr(expr::Evaluation,		{ 2,1,0,2 });
-				/********/assert_integer(2,					{ 2,1,0,2 });
-				/****/assert_integer(3,						{ 4,1,0,4 });
+				/********/assert_expr(expr::Integer,		{ 2,1,0,2 });
+				/****/assert_expr(expr::Integer,			{ 4,1,0,4 });
 				assert_end();
 
 				// nested sequences
 				set("1,(2,(3,)),(4)");
 				assert_expr(expr::Module,					{ 0,14,0,0 }, flags::ExplicitStructure);
 				/**/assert_expr(expr::Evaluation,			{ 0,1,0,0 });
-				/****/assert_integer(1,						{ 0,1,0,0 });
+				/****/assert_expr(expr::Integer,			{ 0,1,0,0 });
 				/**/assert_expr(expr::Evaluation,			{ 2,8,0,2 });
 				/****/assert_expr(expr::Sequence,			{ 2,8,0,2 }, flags::ExplicitStructure);
 				/******/assert_expr(expr::Evaluation,		{ 3,1,0,3 });
-				/********/assert_integer(2,					{ 3,1,0,3 });
+				/********/assert_expr(expr::Integer,		{ 3,1,0,3 });
 				/******/assert_expr(expr::Evaluation,		{ 5,4,0,5 });
 				/********/assert_expr(expr::Sequence,		{ 5,4,0,5 }, flags::ExplicitStructure);
 				/**********/assert_expr(expr::Evaluation,	{ 6,1,0,6 });
-				/************/assert_integer(3,				{ 6,1,0,6 });
+				/************/assert_expr(expr::Integer,	{ 6,1,0,6 });
 				/**/assert_expr(expr::Evaluation,			{ 11,3,0,11 });
 				/****/assert_expr(expr::Sequence,			{ 11,3,0,11 });
 				/******/assert_expr(expr::Evaluation,		{ 12,1,0,12 });
-				/********/assert_integer(4,					{ 12,1,0,12 });
+				/********/assert_expr(expr::Integer,		{ 12,1,0,12 });
 				assert_end();
 			
 				// sequence missing start
@@ -176,9 +164,9 @@ namespace jiffle {
 				/****/assert_symbol("f",						{ 0,3,0,0 });
 				/******/assert_expr(expr::Definition,			{ 1,2,0,1 });
 				/********/assert_expr(expr::Evaluation,			{ 2,1,0,2 });
-				/**********/assert_integer(3,					{ 2,1,0,2 });
+				/**********/assert_expr(expr::Integer,			{ 2,1,0,2 });
 				/**/assert_expr(expr::Evaluation,				{ 4,1,0,4 });
-				/****/assert_integer(4,							{ 4,1,0,4 });
+				/****/assert_expr(expr::Integer,				{ 4,1,0,4 });
 				assert_end();
 
 				// sequence
@@ -188,11 +176,11 @@ namespace jiffle {
 				/****/assert_symbol("f",						{ 0,6,0,0 });
 				/******/assert_expr(expr::DefinitionSequence,	{ 1,5,0,1 }, flags::ExplicitStructure);
 				/********/assert_expr(expr::Evaluation,			{ 2,1,0,2 });
-				/**********/assert_integer(3,					{ 2,1,0,2 });
+				/**********/assert_expr(expr::Integer,			{ 2,1,0,2 });
 				/********/assert_expr(expr::Evaluation,			{ 4,1,0,4 });
-				/**********/assert_integer(4,					{ 4,1,0,4 });
+				/**********/assert_expr(expr::Integer,			{ 4,1,0,4 });
 				/**/assert_expr(expr::Evaluation,				{ 7,1,0,7 });
-				/****/assert_integer(5,							{ 7,1,0,7 });
+				/****/assert_expr(expr::Integer,				{ 7,1,0,7 });
 				assert_end();
 			}
 			{ // parameters

@@ -88,20 +88,11 @@ namespace jiffle {
 			auto push = [&](type t) {
 				token td = {
 					t,
-					_start,
-					{}
+					_start
 				};
 				td.pos.len = _cur.ch - _start.ch;
 				_tdata.push_back(td);
 				reset();
-			};
-			auto pushInt = [&](long long i) {
-				push(type::Integer);
-				_tdata.back().value.integer = i;
-			};
-			auto pushReal = [&](long double r) {
-				push(type::Real);
-				_tdata.back().value.real = r;
 			};
 			
 
@@ -193,13 +184,13 @@ namespace jiffle {
 					// integer 
 					if (!real) {
 						auto i = _buffer.empty() ? 0 : std::stoll(_buffer, NULL, base);
-						pushInt(i);
+						push(type::Integer);
 						continue;
 					}
 					// real 
 					else {
 						auto r = std::stold(_buffer, NULL);
-						pushReal(r);
+						push(type::Real);
 						continue;
 					}
 				}

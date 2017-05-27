@@ -6,6 +6,8 @@
 namespace jiffle {
 	namespace data {
 
+
+
 		// types --------------------------------------------------------------------
 
 		typedef uint8_t byte;

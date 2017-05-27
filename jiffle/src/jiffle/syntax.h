@@ -1,7 +1,5 @@
 #pragma once
 
-#include "data.h"
-
 #include <vector>
 #include <string>
 
@@ -76,10 +74,6 @@ namespace jiffle {
 		struct token {
 			type type;
 			pos pos;
-			union {
-				data::integer_t integer;
-				data::real_t real;
-			} value;
 		};
 
 		// functions ----------------------------------------------------------

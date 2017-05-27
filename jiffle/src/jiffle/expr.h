@@ -16,10 +16,11 @@ namespace jiffle {
 
 			// values
 			Null			= 1,
-			Bool			= 2,
-			Integer			= 3,
-			Real			= 4,
-			String			= 5,
+			True			= 2,	
+			False			= 3,
+			Integer			= 4,
+			Real			= 5,
+			String			= 6,
 
 			// error values
 			Error			= ERROR_BIT | 1,
@@ -46,13 +47,8 @@ namespace jiffle {
 			type type;
 			unsigned char flags;
 			syntax::pos pos;
-			std::string text;			// for string, error and objects
+			std::string text;			// for values
 			std::list<node> items;		// for structures
-			union value_union {
-				bool boolean;
-				data::integer_t integer;
-				data::real_t real;
-			} value;
 		};
 
 		// functions ----------------------------------------------------------

@@ -21,16 +21,6 @@ namespace jiffle {
 				assert(tok == t);
 				assert(pos.ch == p.ch && pos.col == p.col && pos.len == p.len && pos.ln == p.ln);
 			};
-			auto assert_integer = [&](long long i, pos p) {
-				assert_token(type::Integer, p);
-				auto integer = _tdata[_index-1].value.integer;
-				assert(integer == i);
-			};
-			auto assert_real = [&](long double r, pos p) {
-				assert_token(type::Real, p);
-				auto real = _tdata[_index-1].value.real;
-				assert(real == r);
-			};
 			auto assert_end = [&]() {
 				assert(_index >= _tdata.size());
 			};
@@ -67,15 +57,15 @@ namespace jiffle {
 			// numbers
 			set("0x 0 999999999999 0XF 0b111 0o111 0x111 3.14 6.02e-23 0.0e-1");
 			assert_token(type::SyntaxError,					{ 0,2,0,0 });
-			assert_integer(0,								{ 3,1,0,3 });
-			assert_integer(999999999999,					{ 5,12,0,5 });
-			assert_integer(15,								{ 18,3,0,18 });
-			assert_integer(7,								{ 22,5,0,22 });
-			assert_integer(73,								{ 28,5,0,28 });
-			assert_integer(273,								{ 34,5,0,34 });
-			assert_real(3.14,								{ 40,4,0,40 });
-			assert_real(6.02e-23,							{ 45,8,0,45 });
-			assert_real(0.0e-1,								{ 54,6,0,54 });
+			assert_token(type::Integer,						{ 3,1,0,3 });
+			assert_token(type::Integer,						{ 5,12,0,5 });
+			assert_token(type::Integer,						{ 18,3,0,18 });
+			assert_token(type::Integer,						{ 22,5,0,22 });
+			assert_token(type::Integer,						{ 28,5,0,28 });
+			assert_token(type::Integer,						{ 34,5,0,34 });
+			assert_token(type::Real,						{ 40,4,0,40 });
+			assert_token(type::Real,						{ 45,8,0,45 });
+			assert_token(type::Real,						{ 54,6,0,54 });
 			assert_end();
 			// string
 			set("'\v\f\r\t ,=(){}'");
