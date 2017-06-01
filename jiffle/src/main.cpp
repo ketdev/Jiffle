@@ -1,8 +1,6 @@
 
 #include "ansicolor.h"
-#include "jiffle\syntax.h"
-#include "jiffle\expr.h"
-#include "jiffle\vm.h"
+#include "jiffle\jiffle.h"
 
 #include <iostream>
 #include <fstream>
@@ -51,9 +49,10 @@ int main(int argc, char* argv[]) {
 	
 	auto timer = clockTime();
 
-	jiffle::syntax::tokenize_test();
-	jiffle::expr::parse_test();
-	jiffle::vm::generate_test();
+	jiffle::tokenize_test();
+	jiffle::structurize_test();
+	//jiffle::generate_test();
+	//jiffle::evaluate_test();
 
 	auto metric = clockMeasure(timer);
 	std::cout << "Tests: " << toSecs(metric) << " sec" << std::endl;
